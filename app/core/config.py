@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379"
 
+    # AWS S3
+    AWS_REGION: str = "ap-south-1"
+    S3_BUCKET_NAME: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = True
