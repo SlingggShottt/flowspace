@@ -25,5 +25,9 @@ class User(TimeStampedBase):
 
     # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
-    memberships: Mapped[list["Membership"]] = relationship("Membership", back_populates="user")
+    memberships: Mapped[list["Membership"]] = relationship(
+        "Membership",
+        foreign_keys="Membership.user_id",
+        back_populates="user",
+    )
     assigned_tasks: Mapped[list["Task"]] = relationship("Task", back_populates="assignee")
