@@ -12,7 +12,10 @@ class Project(TimeStampedBase):
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    created_by: Mapped[uuid.UUID] = mapped_column(
+    team_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("teams.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -20,6 +23,6 @@ class Project(TimeStampedBase):
     color: Mapped[str] = mapped_column(String(7), default="#6366f1", nullable=False)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="projects")
+    team: Mapped["Team | None"] = relationship("Team", back_populates="projects")
     columns: Mapped[list["Column"]] = relationship("Column", back_populates="project", cascade="all, delete-orphan")

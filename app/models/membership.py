@@ -22,6 +22,5 @@ class Membership(TimeStampedBase):
     role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.MEMBER, nullable=False)
     joined_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="memberships")
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id], back_populates="memberships")

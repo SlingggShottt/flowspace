@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models.membership import Membership
 from app.models.user import UserRole
 
@@ -42,13 +43,17 @@ class MembershipRepository:
 
     async def get_by_id(self, membership_id: uuid.UUID) -> Membership | None:
         result = await self.db.execute(
-            select(Membership).where(Membership.id == membership_id)
+            select(Membership)
+            .options(selectinload(Membership.user))
+            .where(Membership.id == membership_id)
         )
         return result.scalar_one_or_none()
 
     async def get_all_by_tenant(self, tenant_id: uuid.UUID) -> list[Membership]:
         result = await self.db.execute(
-            select(Membership).where(Membership.tenant_id == tenant_id)
+            select(Membership)
+            .options(selectinload(Membership.user))
+            .where(Membership.tenant_id == tenant_id)
         )
         return list(result.scalars().all())
 

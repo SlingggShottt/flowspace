@@ -1,5 +1,3 @@
-# app/routers/projects.py
-
 import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +26,7 @@ async def list_projects(
     current_user: User = Depends(get_current_user),
 ):
     service = ProjectService(db)
-    return await service.list_projects(current_user.tenant_id)
+    return await service.list_projects(current_user.tenant_id, current_user)
 
 
 @router.get("/{project_id}")

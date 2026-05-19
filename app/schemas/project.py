@@ -7,17 +7,20 @@ class ProjectCreate(BaseModel):
     name: str
     description: str | None = None
     color: str = "#6366f1"
+    team_id: uuid.UUID | None = None
 
 
 class ProjectUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     color: str | None = None
+    team_id: uuid.UUID | None = None
 
 
 class ProjectResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
+    team_id: uuid.UUID | None = None
     name: str
     description: str | None = None
     color: str

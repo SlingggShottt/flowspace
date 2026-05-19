@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from app.models.project import Project
 
 
@@ -17,6 +17,7 @@ class ProjectRepository:
         name: str,
         description: str | None = None,
         color: str = "#6366f1",
+        team_id: uuid.UUID | None = None,
     ) -> Project:
         project = Project(
             tenant_id=tenant_id,
@@ -24,6 +25,7 @@ class ProjectRepository:
             name=name,
             description=description,
             color=color,
+            team_id=team_id,
         )
         self.db.add(project)
         await self.db.flush()
@@ -39,13 +41,17 @@ class ProjectRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_all(self, tenant_id: uuid.UUID) -> list[Project]:
-        result = await self.db.execute(
-            select(Project).where(
-                Project.tenant_id == tenant_id,
-                Project.archived_at.is_(None),
-            ).order_by(Project.created_at.desc())
+    async def get_all(self, tenant_id: uuid.UUID, team_ids: list[uuid.UUID] | None = None) -> list[Project]:
+        query = select(Project).where(
+            Project.tenant_id == tenant_id,
+            Project.archived_at.is_(None),
         )
+        if team_ids is not None:
+            query = query.where(
+                or_(Project.team_id.in_(team_ids), Project.team_id.is_(None))
+            )
+        query = query.order_by(Project.created_at.desc())
+        result = await self.db.execute(query)
         return list(result.scalars().all())
 
     async def update(self, project: Project, **kwargs) -> Project:

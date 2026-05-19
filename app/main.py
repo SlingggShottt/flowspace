@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import health, auth, projects, columns, tasks, workspace
+from app.routers import health, auth, projects, columns, tasks, workspace, teams
 
 
 @asynccontextmanager
@@ -37,6 +37,7 @@ app.include_router(projects.router)
 app.include_router(columns.router)
 app.include_router(tasks.router)
 app.include_router(workspace.router)
+app.include_router(teams.router)
 
 
 @app.get("/")
