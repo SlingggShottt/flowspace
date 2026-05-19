@@ -39,3 +39,4 @@ Thumbs.db
 *.db
 *.sqlite3
 infrastructure/.terraform/
+infrastructure/terraform.tfvars
