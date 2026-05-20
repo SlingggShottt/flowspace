@@ -45,80 +45,82 @@ export default function NewProjectPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-lg">
-        <h1 className="text-2xl font-bold text-white mb-6">New Project</h1>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="w-full max-w-2xl">
+          <h1 className="text-4xl font-bold text-white mb-8 text-center">New Project</h1>
 
-        <div className="bg-gray-800 rounded-xl p-6 space-y-4">
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <div className="bg-gray-800 rounded-2xl p-10 space-y-6">
+            {error && <p className="text-red-400 text-lg">{error}</p>}
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Project name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="My project"
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Description</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={3}
-              placeholder="Optional description"
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Assign to team</label>
-            <select
-              value={form.team_id}
-              onChange={(e) => setForm({ ...form, team_id: e.target.value })}
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
-            >
-              <option value="">No team (visible to all)</option>
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">Color</label>
-            <div className="flex gap-2">
-              {colorOptions.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setForm({ ...form, color })}
-                  className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                    form.color === color ? 'border-white scale-110' : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Project name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="My project"
+                className="w-full bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={createMutation.isPending}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-            >
-              {createMutation.isPending ? 'Creating...' : 'Create project'}
-            </button>
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={4}
+                placeholder="Optional description"
+                className="w-full bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Assign to team</label>
+              <select
+                value={form.team_id}
+                onChange={(e) => setForm({ ...form, team_id: e.target.value })}
+                className="w-full bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">No team (visible to all)</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-lg text-gray-400 mb-3">Color</label>
+              <div className="flex gap-3">
+                {colorOptions.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setForm({ ...form, color })}
+                    className={`w-10 h-10 rounded-full border-2 transition-transform ${
+                      form.color === color ? 'border-white scale-110' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-2">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl text-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={createMutation.isPending}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl text-lg font-medium disabled:opacity-50"
+              >
+                {createMutation.isPending ? 'Creating...' : 'Create project'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

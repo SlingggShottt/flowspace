@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getWorkspace, updateWorkspace } from '../api/workspace'
 import AppLayout from '../components/layout/AppLayout'
@@ -11,10 +11,15 @@ export default function SettingsPage() {
   const { data: workspaceData } = useQuery({
     queryKey: ['workspace'],
     queryFn: getWorkspace,
-    onSuccess: (data) => setName(data.data.name),
   })
 
   const workspace = workspaceData?.data
+
+  useEffect(() => {
+    if (workspace?.name) {
+      setName(workspace.name)
+    }
+  }, [workspace])
 
   const updateMutation = useMutation({
     mutationFn: () => updateWorkspace({ name }),
@@ -27,43 +32,46 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-lg">
-        <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <div className="w-full max-w-2xl">
+          <h1 className="text-4xl font-bold text-white mb-8 text-center">Settings</h1>
 
-        <div className="bg-gray-800 rounded-xl p-6 space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Workspace name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
-            />
+          <div className="bg-gray-800 rounded-2xl p-10 space-y-6">
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Workspace name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Slug</label>
+              <input
+                type="text"
+                value={workspace?.slug || ''}
+                disabled
+                className="w-full bg-gray-700/50 text-gray-500 px-5 py-3 rounded-xl text-lg"
+              />
+              <p className="text-gray-500 text-sm mt-1">Slug cannot be changed</p>
+            </div>
+
+            <div>
+              <label className="block text-lg text-gray-400 mb-2">Plan</label>
+              <span className="inline-block bg-indigo-900/40 text-indigo-400 px-4 py-2 rounded-full text-lg capitalize">
+                {workspace?.plan}
+              </span>
+            </div>
+
+            <button
+              onClick={() => updateMutation.mutate()}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-lg font-medium transition-colors"
+            >
+              {saved ? 'Saved!' : 'Save changes'}
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Slug</label>
-            <input
-              type="text"
-              value={workspace?.slug || ''}
-              disabled
-              className="w-full bg-gray-700/50 text-gray-500 px-3 py-2 rounded-lg text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Plan</label>
-            <span className="inline-block bg-indigo-900/40 text-indigo-400 px-3 py-1 rounded-full text-sm capitalize">
-              {workspace?.plan}
-            </span>
-          </div>
-
-          <button
-            onClick={() => updateMutation.mutate()}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm"
-          >
-            {saved ? 'Saved!' : 'Save changes'}
-          </button>
         </div>
       </div>
     </AppLayout>

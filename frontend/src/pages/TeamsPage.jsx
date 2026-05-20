@@ -27,12 +27,12 @@ function TeamCard({ team, members, onDelete, onAddMember, onRemoveMember }) {
   }
 
   return (
-    <div className="bg-gray-800 rounded-xl p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Users size={18} className="text-indigo-400" />
-          <h3 className="text-white font-semibold">{team.name}</h3>
-          <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded-full">
+    <div className="bg-gray-800 rounded-2xl p-6 w-full">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <Users size={24} className="text-indigo-400" />
+          <h3 className="text-2xl font-semibold text-white">{team.name}</h3>
+          <span className="text-base text-gray-500 bg-gray-700 px-3 py-1 rounded-full">
             {team.members.length} members
           </span>
         </div>
@@ -40,23 +40,23 @@ function TeamCard({ team, members, onDelete, onAddMember, onRemoveMember }) {
           onClick={() => onDelete(team.id, team.name)}
           className="text-gray-500 hover:text-red-400 transition-colors"
         >
-          <Trash2 size={16} />
+          <Trash2 size={20} />
         </button>
       </div>
 
-      <div className="space-y-2 mb-4">
+      <div className="space-y-3 mb-5">
         {team.members.length === 0 && (
-          <p className="text-gray-500 text-sm">No members in this team yet.</p>
+          <p className="text-gray-500 text-base">No members in this team yet.</p>
         )}
         {team.members.map((m) => {
           const userInfo = getMemberInfo(m.user_id)
           return (
-            <div key={m.id} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+            <div key={m.id} className="flex items-center justify-between py-1">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
                   {getInitials(userInfo?.name)}
                 </div>
-                <span className="text-gray-300 text-sm">
+                <span className="text-gray-200 text-base">
                   {userInfo?.name || userInfo?.email || m.user_id}
                 </span>
               </div>
@@ -64,18 +64,18 @@ function TeamCard({ team, members, onDelete, onAddMember, onRemoveMember }) {
                 onClick={() => onRemoveMember(team.id, m.user_id)}
                 className="text-gray-500 hover:text-red-400 transition-colors"
               >
-                <Trash2 size={13} />
+                <Trash2 size={16} />
               </button>
             </div>
           )
         })}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <select
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
-          className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
+          className="flex-1 bg-gray-700 text-white px-4 py-3 rounded-xl text-base focus:outline-none"
         >
           <option value="">Select member to add...</option>
           {members
@@ -89,7 +89,7 @@ function TeamCard({ team, members, onDelete, onAddMember, onRemoveMember }) {
         <button
           onClick={handleAdd}
           disabled={!selectedUserId}
-          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white px-4 py-2 rounded-lg text-sm"
+          className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white px-6 py-3 rounded-xl text-base"
         >
           Add
         </button>
@@ -144,49 +144,41 @@ export default function TeamsPage() {
     }
   }
 
-  const handleAddMember = (teamId, userId) => {
-    addTeamMemberMutation.mutate({ teamId, userId })
-  }
-
-  const handleRemoveMember = (teamId, userId) => {
-    removeTeamMemberMutation.mutate({ teamId, userId })
-  }
-
   return (
     <AppLayout>
-      <div className="max-w-3xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">Teams</h1>
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-white">Teams</h1>
           <button
             onClick={() => setShowNewTeam(!showNewTeam)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm"
+            className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl text-xl font-medium"
           >
-            <Plus size={16} />
+            <Plus size={22} />
             New team
           </button>
         </div>
 
         {showNewTeam && (
-          <div className="bg-gray-800 rounded-xl p-4 mb-6 flex gap-3">
+          <div className="bg-gray-800 rounded-2xl p-6 mb-8 flex gap-4">
             <input
               type="text"
               value={newTeamName}
               onChange={(e) => setNewTeamName(e.target.value)}
               placeholder="Team name e.g. Engineering"
-              className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
+              className="flex-1 bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none"
               autoFocus
               onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
             />
             <button
               onClick={handleCreateTeam}
               disabled={createTeamMutation.isPending}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm"
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl text-lg"
             >
               {createTeamMutation.isPending ? 'Creating...' : 'Create'}
             </button>
             <button
               onClick={() => setShowNewTeam(false)}
-              className="text-gray-400 px-3 py-2 rounded-lg text-sm hover:text-white"
+              className="text-gray-400 px-4 py-3 rounded-xl text-lg hover:text-white"
             >
               Cancel
             </button>
@@ -194,21 +186,21 @@ export default function TeamsPage() {
         )}
 
         {teams.length === 0 && !showNewTeam && (
-          <div className="bg-gray-800 rounded-xl p-8 text-center">
-            <Users size={32} className="text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">No teams yet. Create one to get started.</p>
+          <div className="bg-gray-800 rounded-2xl p-12 text-center w-full">
+            <Users size={40} className="text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 text-xl">No teams yet. Create one to get started.</p>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-5 w-full">
           {teams.map((team) => (
             <TeamCard
               key={team.id}
               team={team}
               members={members}
               onDelete={handleDelete}
-              onAddMember={handleAddMember}
-              onRemoveMember={handleRemoveMember}
+              onAddMember={(teamId, userId) => addTeamMemberMutation.mutate({ teamId, userId })}
+              onRemoveMember={(teamId, userId) => removeTeamMemberMutation.mutate({ teamId, userId })}
             />
           ))}
         </div>

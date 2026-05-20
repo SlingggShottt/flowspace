@@ -36,40 +36,40 @@ export default function MembersPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">Members</h1>
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-white">Members</h1>
           <button
             onClick={() => setShowInvite(!showInvite)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-lg"
           >
-            <UserPlus size={16} />
+            <UserPlus size={20} />
             Invite member
           </button>
         </div>
 
         {showInvite && (
-          <div className="bg-gray-800 rounded-xl p-4 mb-6">
-            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
-            <div className="flex gap-3 flex-wrap">
+          <div className="bg-gray-800 rounded-2xl p-6 mb-8">
+            {error && <p className="text-red-400 text-lg mb-3">{error}</p>}
+            <div className="flex gap-4 flex-wrap">
               <input
                 type="email"
                 value={inviteForm.email}
                 onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                 placeholder="Email address"
-                className="flex-1 bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none min-w-48"
+                className="flex-1 bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none min-w-64"
               />
               <select
                 value={inviteForm.role}
                 onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                className="bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
+                className="bg-gray-700 text-white px-5 py-3 rounded-xl text-lg focus:outline-none"
               >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </select>
               <button
                 onClick={() => inviteMutation.mutate(inviteForm)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl text-lg"
               >
                 Invite
               </button>
@@ -77,23 +77,23 @@ export default function MembersPage() {
           </div>
         )}
 
-        <div className="bg-gray-800 rounded-xl divide-y divide-gray-700">
+        <div className="bg-gray-800 rounded-2xl divide-y divide-gray-700 w-full">
           {members.length === 0 && (
-            <p className="text-gray-400 text-sm p-4">No members yet.</p>
+            <p className="text-gray-400 text-lg p-6">No members yet.</p>
           )}
           {members.map((member) => (
-            <div key={member.id} className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+            <div key={member.id} className="flex items-center justify-between px-6 py-5 w-full">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white text-lg font-semibold">
                   {getInitials(member.user?.name)}
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium">
+                  <p className="text-white text-lg font-medium">
                     {member.user?.name || 'Unknown'}
                   </p>
-                  <p className="text-gray-400 text-xs">{member.user?.email}</p>
+                  <p className="text-gray-400 text-base">{member.user?.email}</p>
                 </div>
-                <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full capitalize">
+                <span className="text-base bg-gray-700 text-gray-300 px-3 py-1 rounded-full capitalize">
                   {member.role}
                 </span>
               </div>
@@ -101,7 +101,7 @@ export default function MembersPage() {
                 onClick={() => removeMemberMutation.mutate(member.id)}
                 className="text-gray-500 hover:text-red-400 transition-colors"
               >
-                <Trash2 size={16} />
+                <Trash2 size={20} />
               </button>
             </div>
           ))}

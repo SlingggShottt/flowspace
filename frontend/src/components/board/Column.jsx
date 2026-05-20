@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
@@ -7,6 +7,9 @@ import { createTask } from '../../api/tasks'
 import { updateColumn, deleteColumn } from '../../api/columns'
 import { getMembers } from '../../api/workspace'
 import TaskCard from './TaskCard'
+
+const MIN_WIDTH = 280
+const DEFAULT_WIDTH = 360
 
 export default function Column({ column, tasks, projectId, onTaskClick, isTaskOver }) {
   const queryClient = useQueryClient()
@@ -19,10 +22,12 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
   })
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(column.name)
-  const [selectedMember, setSelectedMember] = useState('')
+  const [width, setWidth] = useState(DEFAULT_WIDTH)
+  const isResizing = useRef(false)
+  const startX = useRef(0)
+  const startWidth = useRef(0)
 
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
-
   const isHighlighted = isOver || isTaskOver
 
   const { data: membersData } = useQuery({
@@ -30,6 +35,34 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
     queryFn: getMembers,
   })
   const members = membersData?.data || []
+
+  const handleMouseDown = (e) => {
+    isResizing.current = true
+    startX.current = e.clientX
+    startWidth.current = width
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing.current) return
+      const diff = e.clientX - startX.current
+      const newWidth = Math.max(MIN_WIDTH, startWidth.current + diff)
+      setWidth(newWidth)
+    }
+    const handleMouseUp = () => {
+      isResizing.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   const createTaskMutation = useMutation({
     mutationFn: (data) => createTask(projectId, column.id, data),
@@ -66,50 +99,50 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
   }
 
   return (
-    <div className="flex-shrink-0 w-72">
+    <div className="flex-shrink-0 relative" style={{ width: `${width}px` }}>
       <div
         ref={setNodeRef}
-        className={`rounded-xl p-3 transition-all duration-200 ${
+        className={`rounded-xl p-4 transition-all duration-200 h-full ${
           isHighlighted
             ? 'bg-indigo-900/40 border-2 border-indigo-500 scale-[1.02]'
             : 'bg-gray-800 border-2 border-transparent'
         }`}
         style={{ minHeight: '8rem' }}
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           {isEditing ? (
             <div className="flex items-center gap-1 flex-1">
               <input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="bg-gray-700 text-white px-2 py-1 rounded text-sm flex-1 focus:outline-none"
+                className="bg-gray-700 text-white px-2 py-1 rounded text-base flex-1 focus:outline-none"
                 autoFocus
               />
               <button
                 onClick={() => updateColumnMutation.mutate({ name: editName })}
                 className="text-green-400 hover:text-green-300"
               >
-                <Check size={14} />
+                <Check size={16} />
               </button>
               <button
                 onClick={() => setIsEditing(false)}
                 className="text-gray-400 hover:text-white"
               >
-                <X size={14} />
+                <X size={16} />
               </button>
             </div>
           ) : (
             <>
-              <h3 className="text-sm font-semibold text-gray-200">{column.name}</h3>
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500 bg-gray-700 px-2 py-0.5 rounded-full">
+              <h3 className="text-base font-semibold text-gray-200">{column.name}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 bg-gray-700 px-2 py-0.5 rounded-full">
                   {tasks.length}
                 </span>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-gray-500 hover:text-gray-300 ml-1"
+                  className="text-gray-500 hover:text-gray-300"
                 >
-                  <Pencil size={12} />
+                  <Pencil size={14} />
                 </button>
                 <button
                   onClick={() => {
@@ -119,7 +152,7 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
                   }}
                   className="text-gray-500 hover:text-red-400"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </>
@@ -138,7 +171,7 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
         </SortableContext>
 
         {showInput ? (
-          <div className="mt-2 space-y-2">
+          <div className="mt-3 space-y-2">
             <input
               type="text"
               value={taskForm.title}
@@ -179,13 +212,13 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
             <div className="flex gap-2">
               <button
                 onClick={handleCreateTask}
-                className="bg-indigo-600 text-white px-3 py-1 rounded text-sm"
+                className="bg-indigo-600 text-white px-3 py-1.5 rounded text-sm"
               >
                 Add
               </button>
               <button
                 onClick={() => setShowInput(false)}
-                className="text-gray-400 px-3 py-1 rounded text-sm"
+                className="text-gray-400 px-3 py-1.5 rounded text-sm"
               >
                 Cancel
               </button>
@@ -194,12 +227,21 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
         ) : (
           <button
             onClick={() => setShowInput(true)}
-            className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-sm mt-2 w-full px-1 py-1"
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-sm mt-3 w-full px-1 py-1"
           >
-            <Plus size={14} />
+            <Plus size={15} />
             Add task
           </button>
         )}
+      </div>
+
+      {/* Resize handle */}
+      <div
+        onMouseDown={handleMouseDown}
+        className="absolute top-0 right-0 w-2 h-full cursor-col-resize opacity-0 hover:opacity-100 flex items-center justify-center group"
+        title="Drag to resize"
+      >
+        <div className="w-1 h-16 bg-indigo-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   )
