@@ -8,6 +8,7 @@ import BoardPage from './pages/BoardPage'
 import MembersPage from './pages/MembersPage'
 import TeamsPage from './pages/TeamsPage'
 import SettingsPage from './pages/SettingsPage'
+import BillingPage from './pages/BillingPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditProjectPage from './pages/EditProjectPage'
 
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/members" element={<AuthGuard><MembersPage /></AuthGuard>} />
           <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
           <Route path="/settings" element={<AuthGuard><SettingsPage /></AuthGuard>} />
+          <Route path="/billing" element={<AuthGuard><BillingPage /></AuthGuard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

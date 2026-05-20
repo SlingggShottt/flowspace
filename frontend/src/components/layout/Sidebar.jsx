@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
 import { getProjects } from '../../api/projects'
 import { logout } from '../../api/auth'
 import useAuthStore from '../../store/authStore'
@@ -103,9 +103,7 @@ export default function Sidebar() {
         <Link
           to="/members"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
-            location.pathname === '/members'
-              ? 'bg-gray-700 text-white'
-              : 'text-gray-300 hover:bg-gray-800'
+            location.pathname === '/members' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
           }`}
           title={collapsed ? 'Members' : ''}
         >
@@ -115,9 +113,7 @@ export default function Sidebar() {
         <Link
           to="/teams"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
-            location.pathname === '/teams'
-              ? 'bg-gray-700 text-white'
-              : 'text-gray-300 hover:bg-gray-800'
+            location.pathname === '/teams' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
           }`}
           title={collapsed ? 'Teams' : ''}
         >
@@ -125,11 +121,19 @@ export default function Sidebar() {
           {!collapsed && 'Teams'}
         </Link>
         <Link
+          to="/billing"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
+            location.pathname === '/billing' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
+          }`}
+          title={collapsed ? 'Billing' : ''}
+        >
+          <CreditCard size={18} />
+          {!collapsed && 'Billing'}
+        </Link>
+        <Link
           to="/settings"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
-            location.pathname === '/settings'
-              ? 'bg-gray-700 text-white'
-              : 'text-gray-300 hover:bg-gray-800'
+            location.pathname === '/settings' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
           }`}
           title={collapsed ? 'Settings' : ''}
         >
