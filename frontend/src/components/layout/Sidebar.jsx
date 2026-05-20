@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard, UserCircle } from 'lucide-react'
+import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
 import { getProjects } from '../../api/projects'
 import { logout } from '../../api/auth'
 import useAuthStore from '../../store/authStore'
-import NotificationBell from './NotificationBell'
 
 export default function Sidebar() {
   const location = useLocation()
@@ -13,9 +12,6 @@ export default function Sidebar() {
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const user = useAuthStore((state) => state.user)
   const [collapsed, setCollapsed] = useState(false)
-
-  const projectIdMatch = location.pathname.match(/\/board\/([^/]+)/)
-  const currentProjectId = projectIdMatch ? projectIdMatch[1] : null
 
   const { data: projectsData } = useQuery({
     queryKey: ['projects'],
@@ -45,15 +41,12 @@ export default function Sidebar() {
         {!collapsed && (
           <h1 className="text-2xl font-bold text-indigo-400">Flowspace</h1>
         )}
-        <div className="flex items-center gap-2 ml-auto">
-          {!collapsed && <NotificationBell projectId={currentProjectId} />}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-        </div>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-gray-400 hover:text-white transition-colors ml-auto"
+        >
+          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
