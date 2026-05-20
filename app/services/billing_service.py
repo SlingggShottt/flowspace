@@ -12,7 +12,7 @@ from app.schemas.billing import BillingResponse, PlanLimits, CreateOrderRequest,
 
 PLAN_LIMITS = {
     PlanType.FREE: PlanLimits(max_projects=3, max_members=5, price_monthly=0),
-    PlanType.PRO: PlanLimits(max_projects=999, max_members=999, price_monthly=999),
+    PlanType.PRO: PlanLimits(max_projects=10, max_members=999, price_monthly=999),
     PlanType.ENTERPRISE: PlanLimits(max_projects=999, max_members=999, price_monthly=2999),
 }
 

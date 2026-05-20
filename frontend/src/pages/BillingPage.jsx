@@ -24,7 +24,7 @@ const PLANS = [
     period: 'per month',
     color: 'indigo',
     features: [
-      'Unlimited projects',
+      'Up to 10 projects',
       'Unlimited members',
       'Advanced kanban board',
       'Team management',
