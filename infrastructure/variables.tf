@@ -1,3 +1,5 @@
+# infrastructure/variables.tf
+
 variable "aws_region" {
   description = "AWS region to deploy to"
   type        = string
@@ -30,6 +32,18 @@ variable "secret_key" {
 
 variable "mongodb_url" {
   description = "MongoDB Atlas connection URL"
+  type        = string
+  sensitive   = true
+}
+
+variable "razorpay_key_id" {
+  description = "Razorpay Key ID"
+  type        = string
+  sensitive   = true
+}
+
+variable "razorpay_key_secret" {
+  description = "Razorpay Key Secret"
   type        = string
   sensitive   = true
 }

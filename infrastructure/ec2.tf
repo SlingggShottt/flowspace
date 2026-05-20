@@ -61,13 +61,15 @@ resource "aws_instance" "main" {
   iam_instance_profile   = aws_iam_instance_profile.ec2.name
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    db_host     = aws_db_instance.postgres.address
-    db_password = var.db_password
-    redis_host  = aws_elasticache_cluster.redis.cache_nodes[0].address
-    secret_key  = var.secret_key
-    mongodb_url = var.mongodb_url
-    s3_bucket   = aws_s3_bucket.uploads.id
-    aws_region  = var.aws_region
+    db_host             = aws_db_instance.postgres.address
+    db_password         = var.db_password
+    redis_host          = aws_elasticache_cluster.redis.cache_nodes[0].address
+    secret_key          = var.secret_key
+    mongodb_url         = var.mongodb_url
+    s3_bucket           = aws_s3_bucket.uploads.id
+    aws_region          = var.aws_region
+    razorpay_key_id     = var.razorpay_key_id
+    razorpay_key_secret = var.razorpay_key_secret
   })
 
   tags = {

@@ -3,32 +3,24 @@
 
 set -e
 
-# Update system
 apt-get update -y
 apt-get upgrade -y
-
-# Install dependencies
 apt-get install -y python3-pip python3-venv git nginx postgresql-client
 
-# Install Docker
 curl -fsSL https://get.docker.com | sh
 usermod -aG docker ubuntu
 
-# Create app directory
 mkdir -p /app
 cd /app
 
-# Clone the repository
+git config --global --add safe.directory /app
 git clone https://github.com/SlingggShottt/flowspace.git .
 
-# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# Install Python dependencies
 pip install -r requirements.txt
 
-# Create .env file
 cat > /app/.env << EOF
 APP_NAME=Flowspace
 APP_ENV=production
@@ -39,15 +31,15 @@ MONGODB_DB_NAME=flowspace
 REDIS_URL=redis://${redis_host}:6379
 AWS_REGION=${aws_region}
 S3_BUCKET_NAME=${s3_bucket}
+RAZORPAY_KEY_ID=${razorpay_key_id}
+RAZORPAY_KEY_SECRET=${razorpay_key_secret}
 EOF
 
-# Run database migrations
 cd /app
 export PYTHONPATH=/app
 source venv/bin/activate
 alembic upgrade head
 
-# Create systemd service for FastAPI
 cat > /etc/systemd/system/flowspace.service << EOF
 [Unit]
 Description=Flowspace FastAPI
@@ -67,7 +59,6 @@ EnvironmentFile=/app/.env
 WantedBy=multi-user.target
 EOF
 
-# Configure nginx as reverse proxy
 cat > /etc/nginx/sites-available/flowspace << EOF
 server {
     listen 80;
@@ -85,7 +76,6 @@ EOF
 ln -sf /etc/nginx/sites-available/flowspace /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
-# Start services
 systemctl daemon-reload
 systemctl enable flowspace
 systemctl start flowspace
