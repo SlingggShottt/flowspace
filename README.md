@@ -4,20 +4,42 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 
 ## Live Demo
 
-- Frontend: http://flowspace-frontend-9d099811.s3-website.ap-south-1.amazonaws.com
+- Frontend: http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com
 - API Docs: http://13.235.218.59:8000/docs
 
 ## Features
 
-- Multi-tenant architecture — each company gets its own isolated workspace at signup
+### Project Management
+- Multi-tenant architecture — each company gets its own isolated workspace
 - Kanban board with drag and drop task management
-- Team management with role-based access control (Admin / Member)
-- Project visibility control — assign projects to specific teams
-- Task management — priority levels, due dates, assignees, descriptions
-- Billing and subscription plans via Razorpay (Free / Pro / Enterprise)
-- JWT authentication with access and refresh tokens
-- File storage via AWS S3
-- Workspace settings and member invite system
+- Resizable columns with hover effect
+- Task priority levels (Low, Medium, High, Critical)
+- Task due dates with overdue highlighting in red
+- Task comments with threaded replies
+- Activity feed — full history of every task change
+- Task search across the entire workspace
+- Soft delete for tasks and projects
+
+### Team & User Management
+- Role-based access control (Admin / Member)
+- Team creation — assign members to teams
+- Project visibility per team — members only see their team's projects
+- Member invite system
+- User profile with name and avatar
+- Collapsible sidebar with plan badge
+
+### Billing & Subscriptions
+- Free plan — 3 projects, 5 members
+- Pro plan — 10 projects, unlimited members (₹999/month)
+- Enterprise plan — unlimited everything (₹2,999/month)
+- Razorpay payment integration
+- Real-time plan upgrade after payment
+- Plan badge visible in sidebar at all times
+
+### Notifications
+- Bell icon in top right corner on every page
+- Shows count of overdue tasks
+- Dropdown list of all overdue tasks with due dates
 
 ## Tech Stack
 
@@ -28,7 +50,10 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - **MongoDB Atlas** — comments and activity feeds
 - **Redis** — caching and token management
 - **Razorpay** — payment processing
+- **Motor** — async MongoDB driver
 - **Pydantic** — data validation and serialization
+- **JWT** — authentication with access and refresh tokens
+- **bcrypt** — password hashing
 
 ### Frontend
 - **React 18** — UI framework with Vite
@@ -37,13 +62,16 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - **Tailwind CSS** — utility-first styling
 - **dnd-kit** — drag and drop for kanban board
 - **Axios** — HTTP client with JWT interceptors
+- **Lucide React** — icons
 
 ### Infrastructure
-- **AWS EC2 t3.micro** — application server
-- **AWS RDS PostgreSQL** — managed database
-- **AWS ElastiCache Redis** — managed Redis
+- **AWS EC2 t3.micro** — application server (free tier)
+- **AWS RDS PostgreSQL** — managed database (free tier)
+- **AWS ElastiCache Redis** — managed Redis (free tier)
 - **AWS S3** — static frontend hosting and file uploads
-- **Terraform** — infrastructure as code (deploy and destroy with one command)
+- **AWS Elastic IP** — static IP that never changes
+- **Nginx** — reverse proxy
+- **Terraform** — infrastructure as code
 
 ## Architecture
 
@@ -52,15 +80,23 @@ Browser (React)
       |
 AWS S3 (Static Hosting)
       |
-      | API calls
+      | HTTP API calls
       |
-AWS EC2 (FastAPI + Uvicorn + Nginx)
-      |
-      |---> AWS RDS (PostgreSQL)
-      |---> AWS ElastiCache (Redis)
-      |---> MongoDB Atlas
-      |---> AWS S3 (File uploads)
+AWS Elastic IP → AWS EC2 (FastAPI + Uvicorn + Nginx)
+                      |
+                      |---> AWS RDS (PostgreSQL)
+                      |---> AWS ElastiCache (Redis)
+                      |---> MongoDB Atlas (Comments, Activity)
+                      |---> AWS S3 (File uploads)
+                      |---> Razorpay (Payments)
 ```
+
+## Design Patterns
+
+- **Repository Pattern** — database queries separated from business logic
+- **Service Layer Pattern** — business logic separated from HTTP handlers
+- **Dependency Injection** — FastAPI Depends() for sessions and auth
+- **SOLID Principles** — single responsibility across all layers
 
 ## Local Development Setup
 
@@ -81,43 +117,38 @@ cd flowspace
 ### 2. Backend setup
 
 ```bash
-# Create and activate virtual environment
 python3 -m venv flowspace-venv
 source flowspace-venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Copy environment variables
 cp .env.example .env
-# Edit .env and fill in your values
+# Edit .env with your values
 ```
 
-### 3. Start databases with Docker
+### 3. Start databases
 
 ```bash
 docker compose up -d
 ```
 
-This starts PostgreSQL, MongoDB, and Redis locally.
+Starts PostgreSQL, MongoDB, and Redis locally.
 
-### 4. Run database migrations
+### 4. Run migrations
 
 ```bash
 export PYTHONPATH=$(pwd)
 alembic upgrade head
 ```
 
-### 5. Start the backend server
+### 5. Start backend
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-API is available at `http://localhost:8000`
-Interactive API docs at `http://localhost:8000/docs`
+API at `http://localhost:8000`
+Docs at `http://localhost:8000/docs`
 
-### 6. Frontend setup
+### 6. Start frontend
 
 ```bash
 cd frontend
@@ -125,15 +156,9 @@ npm install
 npm run dev
 ```
 
-Frontend is available at `http://localhost:5173`
+Frontend at `http://localhost:5173`
 
 ## Environment Variables
-
-Copy `.env.example` to `.env` and fill in all values:
-
-```bash
-cp .env.example .env
-```
 
 | Variable | Description |
 |---|---|
@@ -151,15 +176,13 @@ cp .env.example .env
 
 ## AWS Deployment with Terraform
 
-Infrastructure is fully managed with Terraform. One command to deploy, one command to destroy.
-
 ### Prerequisites
 
-- AWS account with free tier
-- AWS CLI configured (`aws configure`)
+- AWS account (free tier)
+- AWS CLI configured
 - Terraform installed
 
-### Deploy
+### Deploy everything
 
 ```bash
 cd infrastructure
@@ -167,21 +190,23 @@ terraform init
 terraform apply
 ```
 
-This creates:
-- VPC with public and private subnets
-- EC2 t3.micro instance (free tier)
-- RDS PostgreSQL t3.micro (free tier)
-- ElastiCache Redis t3.micro (free tier)
-- S3 buckets for frontend and uploads
-- Security groups and IAM roles
-- Elastic IP (static IP that never changes)
+Creates: VPC, EC2 t3.micro, RDS PostgreSQL, ElastiCache Redis, S3 buckets, Elastic IP, Security groups, IAM roles
 
-### Upload frontend after deploy
+### Deploy frontend
 
 ```bash
 cd frontend
 npm run build
-aws s3 sync dist/ s3://YOUR_FRONTEND_BUCKET --delete
+aws s3 sync dist/ s3://flowspace-frontend-prod --delete
+```
+
+### Update server with latest code
+
+```bash
+ssh -i ~/.ssh/id_rsa ubuntu@YOUR_IP
+sudo git -C /app fetch origin
+sudo git -C /app reset --hard origin/main
+sudo systemctl restart flowspace
 ```
 
 ### Destroy to save credits
@@ -194,10 +219,7 @@ terraform destroy
 ## Running Tests
 
 ```bash
-# Create test database first
 docker exec -it flowspace-postgres psql -U flowspace -c "CREATE DATABASE flowspace_test;"
-
-# Run tests
 export PYTHONPATH=$(pwd)
 pytest tests/ -v
 ```
@@ -213,14 +235,14 @@ flowspace/
 │   ├── models/             # SQLAlchemy ORM models
 │   ├── schemas/            # Pydantic request/response schemas
 │   ├── core/               # Config, security, dependencies
-│   └── db/                 # Database connection and session
+│   └── db/                 # Database connections (PostgreSQL + MongoDB)
 ├── frontend/
 │   └── src/
 │       ├── api/            # Axios API client functions
-│       ├── components/     # Reusable React components
+│       ├── components/
 │       │   ├── board/      # Kanban board components
-│       │   └── layout/     # Layout components
-│       ├── pages/          # Page-level components
+│       │   └── layout/     # Sidebar, AppLayout, NotificationBell
+│       ├── pages/          # Page components
 │       └── store/          # Zustand global state
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
@@ -229,34 +251,48 @@ flowspace/
 └── .env.example            # Environment variable template
 ```
 
-## Design Patterns Used
-
-- **Repository Pattern** — database queries separated from business logic
-- **Service Layer Pattern** — business logic separated from HTTP handlers
-- **Dependency Injection** — FastAPI Depends() for database sessions and auth
-- **SOLID Principles** — single responsibility across all layers
-
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | /auth/register | Register new company and admin user |
-| POST | /auth/login | Login and get JWT token |
+| POST | /auth/register | Register new company and admin |
+| POST | /auth/login | Login and get JWT |
 | POST | /auth/refresh | Refresh access token |
-| GET | /projects | List all projects for workspace |
-| POST | /projects | Create new project |
-| GET | /projects/:id/columns | List columns for a project |
-| POST | /projects/:id/columns | Create a column |
-| POST | /projects/:id/columns/:id/tasks | Create a task |
-| PATCH | /tasks/:id/move | Move task to different column |
-| GET | /workspace/members | List workspace members |
-| POST | /workspace/invite | Invite a member |
-| GET | /teams | List all teams |
-| POST | /teams | Create a team |
-| GET | /billing | Get billing info and plan limits |
-| POST | /billing/order | Create Razorpay payment order |
+| POST | /auth/logout | Logout |
+| GET | /projects | List projects |
+| POST | /projects | Create project |
+| PATCH | /projects/:id | Update project |
+| DELETE | /projects/:id | Archive project |
+| GET | /projects/:id/columns | List columns |
+| POST | /projects/:id/columns | Create column |
+| POST | /projects/:id/columns/:id/tasks | Create task |
+| PATCH | /tasks/:id | Update task |
+| PATCH | /tasks/:id/move | Move task to column |
+| DELETE | /tasks/:id | Delete task |
+| GET | /tasks/search | Search tasks |
+| GET | /tasks/:id/comments | Get comments |
+| POST | /tasks/:id/comments | Add comment |
+| GET | /tasks/:id/activity | Get activity feed |
+| GET | /workspace/members | List members |
+| POST | /workspace/invite | Invite member |
+| GET | /teams | List teams |
+| POST | /teams | Create team |
+| POST | /teams/:id/members | Add member to team |
+| GET | /users/me | Get profile |
+| PATCH | /users/me | Update profile |
+| GET | /billing | Get billing info |
+| POST | /billing/order | Create payment order |
 | POST | /billing/verify | Verify payment and upgrade plan |
+| POST | /billing/downgrade | Downgrade to free |
+
+## Billing Plans
+
+| Plan | Projects | Members | Price |
+|---|---|---|---|
+| Free | 3 | 5 | ₹0 |
+| Pro | 10 | Unlimited | ₹999/month |
+| Enterprise | Unlimited | Unlimited | ₹2,999/month |
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, Razorpay billing integration, role-based access control, team management, and a drag-and-drop kanban board.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, real-time notifications, and a user profile system.
