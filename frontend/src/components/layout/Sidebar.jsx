@@ -3,8 +3,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
 import { getProjects } from '../../api/projects'
+import { getBillingInfo } from '../../api/billing'
 import { logout } from '../../api/auth'
 import useAuthStore from '../../store/authStore'
+
+const planColors = {
+  free: 'bg-gray-700 text-gray-300',
+  pro: 'bg-indigo-900/60 text-indigo-300',
+  enterprise: 'bg-purple-900/60 text-purple-300',
+}
 
 export default function Sidebar() {
   const location = useLocation()
@@ -18,7 +25,13 @@ export default function Sidebar() {
     queryFn: getProjects,
   })
 
+  const { data: billingData } = useQuery({
+    queryKey: ['billing'],
+    queryFn: getBillingInfo,
+  })
+
   const projects = projectsData?.data || []
+  const plan = billingData?.data?.current_plan || 'free'
 
   const handleLogout = async () => {
     await logout()
@@ -39,7 +52,12 @@ export default function Sidebar() {
     >
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         {!collapsed && (
-          <h1 className="text-2xl font-bold text-indigo-400">Flowspace</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-indigo-400">Flowspace</h1>
+            <span className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${planColors[plan]}`}>
+              {plan} plan
+            </span>
+          </div>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
