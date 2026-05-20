@@ -1,8 +1,13 @@
+# app/core/config.py
+
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env", case_sensitive=True)
+
     APP_NAME: str = "Flowspace"
     APP_ENV: str = "development"
     SECRET_KEY: str = "changeme"
@@ -19,10 +24,6 @@ class Settings(BaseSettings):
 
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 @lru_cache()
