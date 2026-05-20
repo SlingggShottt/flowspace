@@ -1,6 +1,3 @@
-#!/bin/bash
-# infrastructure/user_data.sh
-
 set -e
 
 apt-get update -y
@@ -75,6 +72,9 @@ EOF
 
 ln -sf /etc/nginx/sites-available/flowspace /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
+
+# Fix CORS in main.py after clone
+sed -i 's|"http://localhost:5173",|"http://localhost:5173",\n        "http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com",|' /app/app/main.py
 
 systemctl daemon-reload
 systemctl enable flowspace
