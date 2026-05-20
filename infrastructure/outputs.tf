@@ -1,6 +1,8 @@
+# infrastructure/outputs.tf
+
 output "ec2_public_ip" {
   description = "Public IP of the EC2 instance"
-  value       = aws_instance.main.public_ip
+  value       = aws_eip.main.public_ip
 }
 
 output "ec2_public_dns" {
@@ -10,7 +12,7 @@ output "ec2_public_dns" {
 
 output "api_url" {
   description = "FastAPI backend URL"
-  value       = "http://${aws_instance.main.public_ip}:8000"
+  value       = "http://${aws_eip.main.public_ip}:8000"
 }
 
 output "frontend_url" {

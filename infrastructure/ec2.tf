@@ -75,3 +75,13 @@ resource "aws_instance" "main" {
     Environment = var.environment
   }
 }
+
+resource "aws_eip" "main" {
+  instance = aws_instance.main.id
+  domain   = "vpc"
+
+  tags = {
+    Name        = "${var.project_name}-eip"
+    Environment = var.environment
+  }
+}
