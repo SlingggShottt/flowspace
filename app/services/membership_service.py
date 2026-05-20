@@ -8,6 +8,7 @@ from app.models.user import UserRole
 from app.schemas.membership import MemberResponse, MemberRoleUpdate, InviteRequest
 from app.schemas.user import UserResponse
 from app.core.security import hash_password
+from app.services.email_service import EmailService
 import secrets
 
 
@@ -18,6 +19,7 @@ class MembershipService:
         self.membership_repo = MembershipRepository(db)
         self.user_repo = UserRepository(db)
         self.tenant_repo = TenantRepository(db)
+        self.email_service = EmailService()
 
     async def list_members(self, tenant_id: uuid.UUID) -> list[MemberResponse]:
         memberships = await self.membership_repo.get_all_by_tenant(tenant_id)
@@ -36,7 +38,10 @@ class MembershipService:
                 detail="User with this email already exists in this workspace",
             )
 
-        temp_password = secrets.token_urlsafe(16)
+        tenant = await self.tenant_repo.get_by_id(tenant_id)
+        inviter = await self.user_repo.get_by_id(invited_by)
+
+        temp_password = secrets.token_urlsafe(10)
         password_hash = hash_password(temp_password)
 
         user = await self.user_repo.create(
@@ -45,6 +50,7 @@ class MembershipService:
             name=data.email.split("@")[0],
             password_hash=password_hash,
             role=data.role,
+            must_change_password=True,
         )
 
         await self.membership_repo.create(
@@ -54,9 +60,16 @@ class MembershipService:
             invited_by=invited_by,
         )
 
+        self.email_service.send_invite_email(
+            to=data.email,
+            invited_by=inviter.name if inviter else "Someone",
+            workspace_name=tenant.name if tenant else "Flowspace",
+            temp_password=temp_password,
+            tenant_slug=tenant.slug if tenant else "",
+        )
+
         return {
-            "message": f"User {data.email} invited successfully",
-            "temp_password": temp_password,
+            "message": f"Invitation sent to {data.email}",
             "user": UserResponse.model_validate(user),
         }
 

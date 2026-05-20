@@ -1,5 +1,3 @@
-# app/core/config.py
-
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from functools import lru_cache
@@ -24,6 +22,10 @@ class Settings(BaseSettings):
 
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
+
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "Flowspace <onboarding@resend.dev>"
+    FRONTEND_URL: str = "http://localhost:5173"
 
 
 @lru_cache()

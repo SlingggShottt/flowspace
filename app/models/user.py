@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, ForeignKey, Enum as SAEnum
+from sqlalchemy import String, ForeignKey, Enum as SAEnum, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import TimeStampedBase
@@ -22,8 +22,8 @@ class User(TimeStampedBase):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.MEMBER, nullable=False)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    # Relationships
     tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="users")
     memberships: Mapped[list["Membership"]] = relationship(
         "Membership",

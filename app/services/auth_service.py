@@ -1,3 +1,4 @@
+import secrets
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.core.security import (
@@ -7,12 +8,14 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
 )
+from app.core.email_validator import check_email_domain_exists
 from app.repositories.user_repository import UserRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.repositories.membership_repository import MembershipRepository
 from app.models.user import UserRole
-from app.schemas.auth import RegisterRequest, LoginRequest, TokenResponse
+from app.schemas.auth import RegisterRequest, LoginRequest
 from app.schemas.user import UserResponse
+from app.services.email_service import EmailService
 
 
 class AuthService:
@@ -22,8 +25,12 @@ class AuthService:
         self.user_repo = UserRepository(db)
         self.tenant_repo = TenantRepository(db)
         self.membership_repo = MembershipRepository(db)
+        self.email_service = EmailService()
 
     async def register(self, data: RegisterRequest) -> dict:
+        is_valid, message = check_email_domain_exists(data.email)
+        email_warning = None if is_valid else message
+
         tenant = await self.tenant_repo.create(name=data.company_name)
 
         existing = await self.user_repo.get_by_email_and_tenant(data.email, tenant.id)
@@ -52,12 +59,21 @@ class AuthService:
         access_token = create_access_token(token_data)
         refresh_token = create_refresh_token(token_data)
 
-        return {
+        self.email_service.send_welcome_email(
+            to=user.email,
+            name=user.name,
+            workspace_name=tenant.name,
+        )
+
+        result = {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
             "user": UserResponse.model_validate(user),
         }
+        if email_warning:
+            result["email_warning"] = email_warning
+        return result
 
     async def login(self, data: LoginRequest, tenant_slug: str) -> dict:
         tenant = await self.tenant_repo.get_by_slug(tenant_slug)

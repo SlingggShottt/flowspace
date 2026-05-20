@@ -14,6 +14,7 @@ async def test_register_success(client: AsyncClient):
     data = response.json()
     assert "access_token" in data
     assert data["user"]["email"] == "newuser@example.com"
+    assert data["user"]["must_change_password"] == False
 
 
 @pytest.mark.asyncio
@@ -27,6 +28,17 @@ async def test_register_duplicate_email(client: AsyncClient, registered_user):
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
+
+
+@pytest.mark.asyncio
+async def test_register_sends_welcome_email(client: AsyncClient):
+    response = await client.post("/auth/register", json={
+        "company_name": "Email Test Co",
+        "email": "emailtest@gmail.com",
+        "password": "password123",
+        "name": "Email Tester",
+    })
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio

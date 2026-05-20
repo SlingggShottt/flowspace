@@ -15,9 +15,23 @@ class TaskService:
         self.column_repo = ColumnRepository(db)
         self.activity = ActivityService()
 
+    async def _log(self, task_id, tenant_id, user_id, user_name, action, detail=None):
+        try:
+            if user_id and user_name:
+                await self.activity.log_activity(
+                    task_id=task_id,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    user_name=user_name,
+                    action=action,
+                    detail=detail,
+                )
+        except Exception:
+            pass
+
     async def create_task(
         self, column_id: uuid.UUID, tenant_id: uuid.UUID, project_id: uuid.UUID,
-        data: TaskCreate, user_id: uuid.UUID, user_name: str
+        data: TaskCreate, user_id: uuid.UUID = None, user_name: str = None
     ) -> TaskResponse:
         column = await self.column_repo.get_by_id(column_id, tenant_id)
         if not column:
@@ -33,14 +47,7 @@ class TaskService:
             due_date=data.due_date,
             position=data.position,
         )
-        await self.activity.log_activity(
-            task_id=task.id,
-            tenant_id=tenant_id,
-            user_id=user_id,
-            user_name=user_name,
-            action="created",
-            detail=f"Task created in {column.name}",
-        )
+        await self._log(task.id, tenant_id, user_id, user_name, "created", f"Task created in {column.name}")
         return TaskResponse.model_validate(task)
 
     async def get_task(self, task_id: uuid.UUID, tenant_id: uuid.UUID) -> TaskResponse:
@@ -55,25 +62,18 @@ class TaskService:
 
     async def update_task(
         self, task_id: uuid.UUID, tenant_id: uuid.UUID, data: TaskUpdate,
-        user_id: uuid.UUID, user_name: str
+        user_id: uuid.UUID = None, user_name: str = None
     ) -> TaskResponse:
         task = await self.repo.get_by_id(task_id, tenant_id)
         if not task:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
         updated = await self.repo.update(task, **data.model_dump(exclude_none=True))
-        await self.activity.log_activity(
-            task_id=task_id,
-            tenant_id=tenant_id,
-            user_id=user_id,
-            user_name=user_name,
-            action="updated",
-            detail="Task details updated",
-        )
+        await self._log(task_id, tenant_id, user_id, user_name, "updated", "Task details updated")
         return TaskResponse.model_validate(updated)
 
     async def move_task(
         self, task_id: uuid.UUID, tenant_id: uuid.UUID, data: TaskMove,
-        user_id: uuid.UUID, user_name: str
+        user_id: uuid.UUID = None, user_name: str = None
     ) -> TaskResponse:
         task = await self.repo.get_by_id(task_id, tenant_id)
         if not task:
@@ -82,14 +82,7 @@ class TaskService:
         if not column:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Column not found")
         moved = await self.repo.move(task, data.column_id, data.position)
-        await self.activity.log_activity(
-            task_id=task_id,
-            tenant_id=tenant_id,
-            user_id=user_id,
-            user_name=user_name,
-            action="moved",
-            detail=f"Task moved to {column.name}",
-        )
+        await self._log(task_id, tenant_id, user_id, user_name, "moved", f"Task moved to {column.name}")
         return TaskResponse.model_validate(moved)
 
     async def delete_task(self, task_id: uuid.UUID, tenant_id: uuid.UUID) -> dict:

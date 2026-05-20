@@ -12,6 +12,9 @@ import BillingPage from './pages/BillingPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditProjectPage from './pages/EditProjectPage'
 import ProfilePage from './pages/ProfilePage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import ChangePasswordRequiredPage from './pages/ChangePasswordRequiredPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +32,9 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/change-password-required" element={<ChangePasswordRequiredPage />} />
           <Route path="/" element={<AuthGuard><HomePage /></AuthGuard>} />
           <Route path="/board/:projectId" element={<AuthGuard><BoardPage /></AuthGuard>} />
           <Route path="/projects/new" element={<AuthGuard><NewProjectPage /></AuthGuard>} />

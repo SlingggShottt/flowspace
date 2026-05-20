@@ -1,16 +1,23 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.core.config import settings
 from app.routers import health, auth, projects, columns, tasks, workspace, teams, billing, comments, users
 from app.db.mongodb import connect_mongodb, close_mongodb
+from app.services.digest_service import send_overdue_digests
+
+scheduler = AsyncIOScheduler()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_mongodb()
+    scheduler.add_job(send_overdue_digests, 'cron', hour=8, minute=0)
+    scheduler.start()
     print(f"Flowspace starting up...")
     yield
+    scheduler.shutdown()
     close_mongodb()
     print(f"Flowspace shutting down...")
 

@@ -1,5 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.services.comment_service import CommentService
@@ -13,11 +15,12 @@ router = APIRouter(tags=["Comments"])
 async def create_comment(
     task_id: uuid.UUID,
     data: CommentCreate,
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     service = CommentService()
     activity = ActivityService()
-    comment = await service.create_comment(task_id, current_user.tenant_id, current_user, data)
+    comment = await service.create_comment(task_id, current_user.tenant_id, current_user, data, db)
     await activity.log_activity(
         task_id=task_id,
         tenant_id=current_user.tenant_id,
