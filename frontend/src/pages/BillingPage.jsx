@@ -39,6 +39,8 @@ const PLANS = [
     period: 'per month',
     color: 'purple',
     features: [
+      'Unlimited projects',
+      'Unlimited members',
       'Everything in Pro',
       'Custom integrations',
       'Dedicated support',
