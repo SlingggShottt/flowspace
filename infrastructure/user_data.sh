@@ -37,6 +37,9 @@ export PYTHONPATH=/app
 source venv/bin/activate
 alembic upgrade head
 
+# Fix CORS in main.py after clone
+sed -i 's|"http://localhost:5173",|"http://localhost:5173",\n        "http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com",|' /app/app/main.py
+
 cat > /etc/systemd/system/flowspace.service << EOF
 [Unit]
 Description=Flowspace FastAPI
@@ -51,6 +54,41 @@ ExecStart=/app/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=3
 EnvironmentFile=/app/.env
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Create a deploy script so you can update the app without SSH
+cat > /usr/local/bin/flowspace-deploy << 'DEPLOY'
+#!/bin/bash
+set -e
+echo "Pulling latest code..."
+cd /app
+git config --global --add safe.directory /app
+git pull
+source venv/bin/activate
+pip install -r requirements.txt
+export PYTHONPATH=/app
+alembic upgrade head
+sed -i 's|"http://localhost:5173",|"http://localhost:5173",\n        "http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com",|' /app/app/main.py
+systemctl restart flowspace
+echo "Deploy complete!"
+DEPLOY
+
+chmod +x /usr/local/bin/flowspace-deploy
+
+# Create a systemd service that runs flowspace-deploy on every boot
+cat > /etc/systemd/system/flowspace-deploy.service << EOF
+[Unit]
+Description=Flowspace Deploy on Boot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/flowspace-deploy
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
@@ -73,10 +111,8 @@ EOF
 ln -sf /etc/nginx/sites-available/flowspace /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
-# Fix CORS in main.py after clone
-sed -i 's|"http://localhost:5173",|"http://localhost:5173",\n        "http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com",|' /app/app/main.py
-
 systemctl daemon-reload
 systemctl enable flowspace
+systemctl enable flowspace-deploy
 systemctl start flowspace
 systemctl restart nginx
