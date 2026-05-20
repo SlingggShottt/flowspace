@@ -1,5 +1,7 @@
+# infrastructure/s3.tf
+
 resource "aws_s3_bucket" "frontend" {
-  bucket        = "${var.project_name}-frontend-${random_id.suffix.hex}"
+  bucket        = "${var.project_name}-frontend-prod"
   force_destroy = true
 
   tags = {
@@ -9,17 +11,13 @@ resource "aws_s3_bucket" "frontend" {
 }
 
 resource "aws_s3_bucket" "uploads" {
-  bucket        = "${var.project_name}-uploads-${random_id.suffix.hex}"
+  bucket        = "${var.project_name}-uploads-prod"
   force_destroy = true
 
   tags = {
     Name        = "${var.project_name}-uploads"
     Environment = var.environment
   }
-}
-
-resource "random_id" "suffix" {
-  byte_length = 4
 }
 
 resource "aws_s3_bucket_website_configuration" "frontend" {
