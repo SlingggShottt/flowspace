@@ -2,15 +2,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import health, auth, projects, columns, tasks, workspace, teams, billing
+from app.routers import health, auth, projects, columns, tasks, workspace, teams, billing, comments, users
+from app.db.mongodb import connect_mongodb, close_mongodb
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Code here runs on startup
-    print(f"{settings.APP_NAME} starting up...")
+    await connect_mongodb()
+    print(f"Flowspace starting up...")
     yield
-    # Code here runs on shutdown
-    print(f"{settings.APP_NAME} shutting down...")
+    close_mongodb()
+    print(f"Flowspace shutting down...")
 
 
 app = FastAPI(
@@ -20,7 +22,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allows the React frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -33,18 +34,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(columns.router)
 app.include_router(tasks.router)
+app.include_router(comments.router)
 app.include_router(workspace.router)
 app.include_router(teams.router)
 app.include_router(billing.router)
+app.include_router(users.router)
 
 
 @app.get("/")
 async def root():
     return {"message": f"Welcome to {settings.APP_NAME} API"}
-

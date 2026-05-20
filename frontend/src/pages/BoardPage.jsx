@@ -12,10 +12,12 @@ import {
 import { Plus } from 'lucide-react'
 import { getColumns, createColumn } from '../api/columns'
 import { getTasks, moveTask } from '../api/tasks'
+import { getProject } from '../api/projects'
 import AppLayout from '../components/layout/AppLayout'
 import Column from '../components/board/Column'
 import TaskCard from '../components/board/TaskCard'
 import TaskModal from '../components/board/TaskModal'
+import SearchBar from '../components/board/SearchBar'
 
 export default function BoardPage() {
   const { projectId } = useParams()
@@ -27,10 +29,13 @@ export default function BoardPage() {
   const [overColumnId, setOverColumnId] = useState(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   )
+
+  const { data: projectData } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => getProject(projectId),
+  })
 
   const { data: columnsData } = useQuery({
     queryKey: ['columns', projectId],
@@ -42,6 +47,7 @@ export default function BoardPage() {
     queryFn: () => getTasks(projectId),
   })
 
+  const project = projectData?.data
   const columns = columnsData?.data || []
   const tasks = tasksData?.data || []
 
@@ -66,51 +72,27 @@ export default function BoardPage() {
 
   const handleDragOver = (event) => {
     const { over } = event
-    if (!over) {
-      setOverColumnId(null)
-      return
-    }
-
-    const overId = over.id
-    const overColumn = columns.find((c) => c.id === overId)
-    const overTask = tasks.find((t) => t.id === overId)
-
-    if (overColumn) {
-      setOverColumnId(overColumn.id)
-    } else if (overTask) {
-      setOverColumnId(overTask.column_id)
-    } else {
-      setOverColumnId(null)
-    }
+    if (!over) { setOverColumnId(null); return }
+    const overColumn = columns.find((c) => c.id === over.id)
+    const overTask = tasks.find((t) => t.id === over.id)
+    if (overColumn) setOverColumnId(overColumn.id)
+    else if (overTask) setOverColumnId(overTask.column_id)
+    else setOverColumnId(null)
   }
 
   const handleDragEnd = (event) => {
     const { active, over } = event
     setActiveTask(null)
     setOverColumnId(null)
-
     if (!over) return
-
     const taskId = active.id
-    const overId = over.id
-
     const task = tasks.find((t) => t.id === taskId)
     if (!task) return
-
-    const overColumn = columns.find((c) => c.id === overId)
-    const overTask = tasks.find((t) => t.id === overId)
-    const targetColumnId = overColumn
-      ? overColumn.id
-      : overTask
-      ? overTask.column_id
-      : null
-
+    const overColumn = columns.find((c) => c.id === over.id)
+    const overTask = tasks.find((t) => t.id === over.id)
+    const targetColumnId = overColumn ? overColumn.id : overTask ? overTask.column_id : null
     if (!targetColumnId || task.column_id === targetColumnId) return
-
-    moveTaskMutation.mutate({
-      taskId,
-      data: { column_id: targetColumnId, position: 0 },
-    })
+    moveTaskMutation.mutate({ taskId, data: { column_id: targetColumnId, position: 0 } })
   }
 
   const handleCreateColumn = () => {
@@ -122,6 +104,18 @@ export default function BoardPage() {
 
   return (
     <AppLayout>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">
+            {project?.name || 'Loading...'}
+          </h1>
+          {project?.description && (
+            <p className="text-gray-400 text-sm mt-1">{project.description}</p>
+          )}
+        </div>
+        <SearchBar onTaskClick={setSelectedTask} />
+      </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -129,7 +123,7 @@ export default function BoardPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 pb-4" style={{ minHeight: 'calc(100vh - 6rem)' }}>
+        <div className="flex gap-4 pb-4" style={{ minHeight: 'calc(100vh - 10rem)' }}>
           {columns.map((column) => (
             <Column
               key={column.id}
@@ -154,18 +148,8 @@ export default function BoardPage() {
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateColumn()}
                 />
                 <div className="flex gap-2">
-                  <button
-                    onClick={handleCreateColumn}
-                    className="bg-indigo-600 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Add
-                  </button>
-                  <button
-                    onClick={() => setShowColumnInput(false)}
-                    className="text-gray-400 px-3 py-1 rounded text-sm"
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={handleCreateColumn} className="bg-indigo-600 text-white px-3 py-1 rounded text-sm">Add</button>
+                  <button onClick={() => setShowColumnInput(false)} className="text-gray-400 px-3 py-1 rounded text-sm">Cancel</button>
                 </div>
               </div>
             ) : (

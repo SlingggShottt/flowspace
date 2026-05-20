@@ -19,6 +19,8 @@ export default function TaskCard({ task, onClick, isDragging }) {
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date()
+
   return (
     <div
       ref={setNodeRef}
@@ -26,7 +28,11 @@ export default function TaskCard({ task, onClick, isDragging }) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-600 transition-colors"
+      className={`rounded-lg p-3 cursor-pointer transition-colors ${
+        isOverdue
+          ? 'bg-red-950/40 border border-red-800/50 hover:bg-red-950/60'
+          : 'bg-gray-700 hover:bg-gray-600'
+      }`}
     >
       <p className="text-sm text-white mb-2">{task.title}</p>
       <div className="flex items-center justify-between">
@@ -34,8 +40,8 @@ export default function TaskCard({ task, onClick, isDragging }) {
           {task.priority}
         </span>
         {task.due_date && (
-          <span className="text-xs text-gray-400">
-            {new Date(task.due_date).toLocaleDateString()}
+          <span className={`text-xs ${isOverdue ? 'text-red-400 font-medium' : 'text-gray-400'}`}>
+            {isOverdue ? 'Overdue' : new Date(task.due_date).toLocaleDateString()}
           </span>
         )}
       </div>

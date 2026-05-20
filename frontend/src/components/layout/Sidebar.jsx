@@ -1,16 +1,21 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
+import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard, UserCircle } from 'lucide-react'
 import { getProjects } from '../../api/projects'
 import { logout } from '../../api/auth'
 import useAuthStore from '../../store/authStore'
+import NotificationBell from './NotificationBell'
 
 export default function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const clearAuth = useAuthStore((state) => state.clearAuth)
+  const user = useAuthStore((state) => state.user)
   const [collapsed, setCollapsed] = useState(false)
+
+  const projectIdMatch = location.pathname.match(/\/board\/([^/]+)/)
+  const currentProjectId = projectIdMatch ? projectIdMatch[1] : null
 
   const { data: projectsData } = useQuery({
     queryKey: ['projects'],
@@ -25,6 +30,11 @@ export default function Sidebar() {
     navigate('/login')
   }
 
+  const getInitials = (name) => {
+    if (!name) return '?'
+    return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  }
+
   return (
     <div
       className={`bg-gray-900 text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 ${
@@ -35,12 +45,15 @@ export default function Sidebar() {
         {!collapsed && (
           <h1 className="text-2xl font-bold text-indigo-400">Flowspace</h1>
         )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-400 hover:text-white transition-colors ml-auto"
-        >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+        <div className="flex items-center gap-2 ml-auto">
+          {!collapsed && <NotificationBell projectId={currentProjectId} />}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
@@ -100,6 +113,19 @@ export default function Sidebar() {
       </div>
 
       <div className="p-3 border-t border-gray-700 space-y-1">
+        {!collapsed && (
+          <Link
+            to="/profile"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
+              location.pathname === '/profile' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+              {getInitials(user?.name)}
+            </div>
+            <span className="truncate">{user?.name || 'My Profile'}</span>
+          </Link>
+        )}
         <Link
           to="/members"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${

@@ -19,7 +19,10 @@ async def create_task(
     current_user: User = Depends(get_current_user),
 ):
     service = TaskService(db)
-    return await service.create_task(column_id, current_user.tenant_id, project_id, data)
+    return await service.create_task(
+        column_id, current_user.tenant_id, project_id, data,
+        current_user.id, current_user.name
+    )
 
 
 @router.get("/projects/{project_id}/tasks")
@@ -60,7 +63,10 @@ async def update_task(
     current_user: User = Depends(get_current_user),
 ):
     service = TaskService(db)
-    return await service.update_task(task_id, current_user.tenant_id, data)
+    return await service.update_task(
+        task_id, current_user.tenant_id, data,
+        current_user.id, current_user.name
+    )
 
 
 @router.patch("/tasks/{task_id}/move")
@@ -71,7 +77,10 @@ async def move_task(
     current_user: User = Depends(get_current_user),
 ):
     service = TaskService(db)
-    return await service.move_task(task_id, current_user.tenant_id, data)
+    return await service.move_task(
+        task_id, current_user.tenant_id, data,
+        current_user.id, current_user.name
+    )
 
 
 @router.delete("/tasks/{task_id}")

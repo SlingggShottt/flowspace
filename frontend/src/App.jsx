@@ -11,6 +11,7 @@ import SettingsPage from './pages/SettingsPage'
 import BillingPage from './pages/BillingPage'
 import NewProjectPage from './pages/NewProjectPage'
 import EditProjectPage from './pages/EditProjectPage'
+import ProfilePage from './pages/ProfilePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/teams" element={<AuthGuard><TeamsPage /></AuthGuard>} />
           <Route path="/settings" element={<AuthGuard><SettingsPage /></AuthGuard>} />
           <Route path="/billing" element={<AuthGuard><BillingPage /></AuthGuard>} />
+          <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
