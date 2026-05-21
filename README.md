@@ -1,40 +1,60 @@
 # Flowspace
 
-A production-ready multi-tenant SaaS project management platform built with FastAPI, React, PostgreSQL, and deployed on AWS. Think of it as a Jira/Trello alternative with full team management, billing, and cloud deployment.
+A production-ready multi-tenant SaaS project management platform built with FastAPI, React, PostgreSQL, and deployed on AWS. Think of it as a Jira/Trello alternative with full team management, billing, email notifications, and cloud deployment.
 
 ## Live Demo
 
 - Frontend: http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com
-- API Docs: http://13.235.218.59:8000/docs
+- API Docs: http://13.207.122.41:8000/docs
+
+> The infrastructure is spun down when not in use to save costs. If the app is offline, reach out and it can be live in under 10 minutes.
 
 ## Features
 
 ### Project Management
 - Multi-tenant architecture — each company gets its own isolated workspace
 - Kanban board with drag and drop task management
-- Resizable columns with hover effect
+- Resizable columns
 - Task priority levels (Low, Medium, High, Critical)
 - Task due dates with overdue highlighting in red
-- Task comments with threaded replies
-- Activity feed — full history of every task change
+- Task comments with full thread support
+- Activity feed — complete history of every task change
 - Task search across the entire workspace
 - Soft delete for tasks and projects
 
-### Team & User Management
+### Team and User Management
 - Role-based access control (Admin / Member)
-- Team creation — assign members to teams
-- Project visibility per team — members only see their team's projects
-- Member invite system
-- User profile with name and avatar
-- Collapsible sidebar with plan badge
+- Team creation with project visibility per team
+- Members only see projects assigned to their team
+- Member invite system with email delivery
+- Forced password change on first login for invited users
+- User profile page with name and avatar
 
-### Billing & Subscriptions
+### Email System
+- Email DNS validation on registration — warns if domain does not exist
+- Welcome email on registration
+- Invite email with temporary password
+- Task assigned notification email
+- Comment notification email to task assignee
+- Daily overdue digest email at 8am
+
+### Password Management
+- Forgot password flow with email reset link
+- Change password in profile with current and new password
+- Force password change on first login for invited members
+
+### Billing and Subscriptions
 - Free plan — 3 projects, 5 members
 - Pro plan — 10 projects, unlimited members (₹999/month)
-- Enterprise plan — unlimited everything (₹2,999/month)
-- Razorpay payment integration
-- Real-time plan upgrade after payment
+- Enterprise plan — unlimited projects and members (₹2,999/month)
+- Razorpay payment integration with test mode
+- Real-time plan upgrade after successful payment
 - Plan badge visible in sidebar at all times
+
+### Role-Based UI
+- Admins see Teams, Billing, workspace Settings, invite and remove members
+- Members see only their own Profile and the Members list (read-only)
+- Settings page shows workspace controls for admins, profile redirect for members
 
 ### Notifications
 - Bell icon in top right corner on every page
@@ -46,32 +66,38 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 ### Backend
 - **FastAPI** — async Python web framework
 - **PostgreSQL** — primary relational database
-- **SQLAlchemy** — async ORM with Alembic migrations
-- **MongoDB Atlas** — comments and activity feeds
+- **SQLAlchemy** — async ORM
+- **Alembic** — database migrations
+- **MongoDB Atlas** — comments and activity feeds (Motor async driver)
 - **Redis** — caching and token management
 - **Razorpay** — payment processing
-- **Motor** — async MongoDB driver
+- **Resend** — transactional email delivery
 - **Pydantic** — data validation and serialization
 - **JWT** — authentication with access and refresh tokens
 - **bcrypt** — password hashing
+- **APScheduler** — daily overdue digest cron job
+- **dnspython** — email domain DNS validation
 
 ### Frontend
-- **React 18** — UI framework with Vite
+- **React** — UI framework with Vite
 - **TanStack Query** — server state management and caching
 - **Zustand** — global client state
 - **Tailwind CSS** — utility-first styling
 - **dnd-kit** — drag and drop for kanban board
 - **Axios** — HTTP client with JWT interceptors
 - **Lucide React** — icons
+- **React Router v6** — client-side routing with protected routes
 
 ### Infrastructure
 - **AWS EC2 t3.micro** — application server (free tier)
-- **AWS RDS PostgreSQL** — managed database (free tier)
+- **AWS RDS PostgreSQL** — managed relational database (free tier)
 - **AWS ElastiCache Redis** — managed Redis (free tier)
 - **AWS S3** — static frontend hosting and file uploads
+- **AWS VPC** — isolated network with public and private subnets
+- **AWS IAM** — roles and policies for EC2 access to S3
 - **AWS Elastic IP** — static IP that never changes
 - **Nginx** — reverse proxy
-- **Terraform** — infrastructure as code
+- **Terraform** — infrastructure as code (one command deploy and destroy)
 
 ## Architecture
 
@@ -82,13 +108,14 @@ AWS S3 (Static Hosting)
       |
       | HTTP API calls
       |
-AWS Elastic IP → AWS EC2 (FastAPI + Uvicorn + Nginx)
+AWS Elastic IP -> AWS EC2 (FastAPI + Uvicorn + Nginx)
                       |
                       |---> AWS RDS (PostgreSQL)
                       |---> AWS ElastiCache (Redis)
                       |---> MongoDB Atlas (Comments, Activity)
                       |---> AWS S3 (File uploads)
                       |---> Razorpay (Payments)
+                      |---> Resend (Emails)
 ```
 
 ## Design Patterns
@@ -165,7 +192,7 @@ Frontend at `http://localhost:5173`
 | APP_NAME | Application name |
 | APP_ENV | development or production |
 | SECRET_KEY | JWT signing secret |
-| DATABASE_URL | PostgreSQL connection string |
+| DATABASE_URL | PostgreSQL async connection string |
 | MONGODB_URL | MongoDB Atlas connection string |
 | MONGODB_DB_NAME | MongoDB database name |
 | REDIS_URL | Redis connection string |
@@ -173,6 +200,8 @@ Frontend at `http://localhost:5173`
 | S3_BUCKET_NAME | S3 bucket for file uploads |
 | RAZORPAY_KEY_ID | Razorpay API key ID |
 | RAZORPAY_KEY_SECRET | Razorpay API secret |
+| RESEND_API_KEY | Resend API key for emails |
+| FRONTEND_URL | Frontend URL for email links |
 
 ## AWS Deployment with Terraform
 
@@ -198,14 +227,17 @@ Creates: VPC, EC2 t3.micro, RDS PostgreSQL, ElastiCache Redis, S3 buckets, Elast
 cd frontend
 npm run build
 aws s3 sync dist/ s3://flowspace-frontend-prod --delete
+aws s3 cp public/offline.html s3://flowspace-frontend-prod/offline.html
 ```
 
 ### Update server with latest code
 
 ```bash
-ssh -i ~/.ssh/id_rsa ubuntu@YOUR_IP
-sudo git -C /app fetch origin
-sudo git -C /app reset --hard origin/main
+ssh -i ~/.ssh/id_rsa ubuntu@YOUR_ELASTIC_IP
+cd /app && sudo git fetch origin && sudo git reset --hard origin/main
+source venv/bin/activate
+pip install -r requirements.txt
+export PYTHONPATH=/app && alembic upgrade head
 sudo systemctl restart flowspace
 ```
 
@@ -234,19 +266,19 @@ flowspace/
 │   ├── repositories/       # Database query layer
 │   ├── models/             # SQLAlchemy ORM models
 │   ├── schemas/            # Pydantic request/response schemas
-│   ├── core/               # Config, security, dependencies
-│   └── db/                 # Database connections (PostgreSQL + MongoDB)
+│   ├── core/               # Config, security, dependencies, email validator
+│   └── db/                 # PostgreSQL and MongoDB connections
 ├── frontend/
 │   └── src/
 │       ├── api/            # Axios API client functions
 │       ├── components/
-│       │   ├── board/      # Kanban board components
-│       │   └── layout/     # Sidebar, AppLayout, NotificationBell
-│       ├── pages/          # Page components
+│       │   ├── board/      # Kanban board, task cards, task modal, search
+│       │   └── layout/     # Sidebar, AppLayout, NotificationBell, AuthGuard
+│       ├── pages/          # All page components
 │       └── store/          # Zustand global state
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
-├── tests/                  # Pytest test suite
+├── tests/                  # Pytest test suite (38 tests)
 ├── docker-compose.yml      # Local development databases
 └── .env.example            # Environment variable template
 ```
@@ -278,12 +310,15 @@ flowspace/
 | GET | /teams | List teams |
 | POST | /teams | Create team |
 | POST | /teams/:id/members | Add member to team |
-| GET | /users/me | Get profile |
+| GET | /users/me | Get own profile |
 | PATCH | /users/me | Update profile |
-| GET | /billing | Get billing info |
-| POST | /billing/order | Create payment order |
+| POST | /users/me/change-password | Change password |
+| POST | /users/forgot-password | Request password reset email |
+| POST | /users/reset-password | Reset password with token |
+| GET | /billing | Get billing info and plan limits |
+| POST | /billing/order | Create Razorpay payment order |
 | POST | /billing/verify | Verify payment and upgrade plan |
-| POST | /billing/downgrade | Downgrade to free |
+| POST | /billing/downgrade | Downgrade to free plan |
 
 ## Billing Plans
 
@@ -295,4 +330,9 @@ flowspace/
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, real-time notifications, and a user profile system.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
+
+## Links
+
+- GitHub: https://github.com/SlingggShottt/flowspace
+- LinkedIn: https://www.linkedin.com/in/divyansh-pankaj-mishra-4719b4204/
