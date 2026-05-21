@@ -13,7 +13,7 @@ scheduler = AsyncIOScheduler()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_mongodb()
-    scheduler.add_job(send_overdue_digests, 'cron', hour=8, minute=0)
+    scheduler.add_job(send_overdue_digests, 'cron', hour=12, minute=30)
     scheduler.start()
     print(f"Flowspace starting up...")
     yield
