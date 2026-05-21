@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMembers, inviteMember, removeMember } from '../api/workspace'
 import AppLayout from '../components/layout/AppLayout'
 import { UserPlus, Trash2 } from 'lucide-react'
+import useAuthStore from '../store/authStore'
 
 const getInitials = (name) => {
   if (!name) return '?'
@@ -11,6 +12,8 @@ const getInitials = (name) => {
 
 export default function MembersPage() {
   const queryClient = useQueryClient()
+  const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role === 'admin'
   const [showInvite, setShowInvite] = useState(false)
   const [inviteForm, setInviteForm] = useState({ email: '', role: 'member' })
   const [error, setError] = useState('')
@@ -39,16 +42,18 @@ export default function MembersPage() {
       <div className="w-full max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-4xl font-bold text-white">Members</h1>
-          <button
-            onClick={() => setShowInvite(!showInvite)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-lg"
-          >
-            <UserPlus size={20} />
-            Invite member
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setShowInvite(!showInvite)}
+              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-lg"
+            >
+              <UserPlus size={20} />
+              Invite member
+            </button>
+          )}
         </div>
 
-        {showInvite && (
+        {isAdmin && showInvite && (
           <div className="bg-gray-800 rounded-2xl p-6 mb-8">
             {error && <p className="text-red-400 text-lg mb-3">{error}</p>}
             <div className="flex gap-4 flex-wrap">
@@ -97,12 +102,14 @@ export default function MembersPage() {
                   {member.role}
                 </span>
               </div>
-              <button
-                onClick={() => removeMemberMutation.mutate(member.id)}
-                className="text-gray-500 hover:text-red-400 transition-colors"
-              >
-                <Trash2 size={20} />
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => removeMemberMutation.mutate(member.id)}
+                  className="text-gray-500 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={20} />
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -26,7 +26,7 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 
   error_document {
-    key = "offline.html"
+    key = "index.html"
   }
 }
 

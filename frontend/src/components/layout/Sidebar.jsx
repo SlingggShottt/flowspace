@@ -18,6 +18,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const user = useAuthStore((state) => state.user)
+  const isAdmin = user?.role === 'admin'
   const [collapsed, setCollapsed] = useState(false)
 
   const { data: projectsData } = useQuery({
@@ -147,26 +148,30 @@ export default function Sidebar() {
           <Users size={18} />
           {!collapsed && 'Members'}
         </Link>
-        <Link
-          to="/teams"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
-            location.pathname === '/teams' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
-          }`}
-          title={collapsed ? 'Teams' : ''}
-        >
-          <LayoutGrid size={18} />
-          {!collapsed && 'Teams'}
-        </Link>
-        <Link
-          to="/billing"
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
-            location.pathname === '/billing' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
-          }`}
-          title={collapsed ? 'Billing' : ''}
-        >
-          <CreditCard size={18} />
-          {!collapsed && 'Billing'}
-        </Link>
+        {isAdmin && (
+          <Link
+            to="/teams"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
+              location.pathname === '/teams' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
+            }`}
+            title={collapsed ? 'Teams' : ''}
+          >
+            <LayoutGrid size={18} />
+            {!collapsed && 'Teams'}
+          </Link>
+        )}
+        {isAdmin && (
+          <Link
+            to="/billing"
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
+              location.pathname === '/billing' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
+            }`}
+            title={collapsed ? 'Billing' : ''}
+          >
+            <CreditCard size={18} />
+            {!collapsed && 'Billing'}
+          </Link>
+        )}
         <Link
           to="/settings"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
