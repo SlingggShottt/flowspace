@@ -1,5 +1,3 @@
-# infrastructure/s3.tf
-
 resource "aws_s3_bucket" "frontend" {
   bucket        = "${var.project_name}-frontend-prod"
   force_destroy = true

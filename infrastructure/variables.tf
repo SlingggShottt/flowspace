@@ -47,3 +47,9 @@ variable "razorpay_key_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "resend_api_key" {
+  description = "Resend API key for emails"
+  type        = string
+  sensitive   = true
+}

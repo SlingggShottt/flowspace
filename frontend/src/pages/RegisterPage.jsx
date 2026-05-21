@@ -1,3 +1,5 @@
+// frontend/src/pages/RegisterPage.jsx
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { register } from '../api/auth'
@@ -13,20 +15,35 @@ export default function RegisterPage() {
     password: '',
   })
   const [error, setError] = useState('')
+  const [warning, setWarning] = useState('')
   const [loading, setLoading] = useState(false)
+  const [pendingAuth, setPendingAuth] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setWarning('')
     setLoading(true)
     try {
       const res = await register(form)
-      setAuth(res.data.user, res.data.access_token)
-      navigate('/')
+      if (res.data.email_warning) {
+        setWarning(res.data.email_warning)
+        setPendingAuth({ user: res.data.user, token: res.data.access_token })
+      } else {
+        setAuth(res.data.user, res.data.access_token)
+        navigate('/')
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleContinue = () => {
+    if (pendingAuth) {
+      setAuth(pendingAuth.user, pendingAuth.token)
+      navigate('/')
     }
   }
 
@@ -42,59 +59,74 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Company name</label>
-            <input
-              type="text"
-              value={form.company_name}
-              onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-              placeholder="Acme Corp"
-              className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-              required
-            />
+        {warning && (
+          <div className="bg-yellow-900/30 border border-yellow-500 text-yellow-400 px-4 py-3 rounded-lg mb-4 text-sm">
+            <p className="font-medium mb-1">Warning: Email domain may not exist</p>
+            <p className="mb-3">{warning}. Your account was created but emails may not be delivered.</p>
+            <button
+              onClick={handleContinue}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-1.5 rounded text-sm font-medium"
+            >
+              Continue anyway
+            </button>
           </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Your name</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="John Doe"
-              className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@company.com"
-              className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Password</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="••••••••"
-              className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Creating workspace...' : 'Create workspace'}
-          </button>
-        </form>
+        )}
+
+        {!warning && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Company name</label>
+              <input
+                type="text"
+                value={form.company_name}
+                onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+                placeholder="Acme Corp"
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Your name</label>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="John Doe"
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Email</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="you@company.com"
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Password</label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="........"
+                className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-indigo-500"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Creating workspace...' : 'Create workspace'}
+            </button>
+          </form>
+        )}
 
         <p className="text-gray-400 text-sm mt-4 text-center">
           Already have a workspace?{' '}

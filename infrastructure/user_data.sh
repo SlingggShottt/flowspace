@@ -30,6 +30,8 @@ AWS_REGION=${aws_region}
 S3_BUCKET_NAME=${s3_bucket}
 RAZORPAY_KEY_ID=${razorpay_key_id}
 RAZORPAY_KEY_SECRET=${razorpay_key_secret}
+RESEND_API_KEY=${resend_api_key}
+FRONTEND_URL=http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com
 EOF
 
 cd /app
