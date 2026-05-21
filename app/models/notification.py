@@ -1,18 +1,28 @@
+# app/models/notification.py
+
 import uuid
-from datetime import datetime
-from pydantic import BaseModel
+from sqlalchemy import String, ForeignKey, Boolean, Text
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID
+from app.models.base import TimeStampedBase
 
 
-class NotificationResponse(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    tenant_id: uuid.UUID
-    type: str
-    title: str
-    body: str | None = None
-    is_read: bool
-    task_id: uuid.UUID | None = None
-    project_id: uuid.UUID | None = None
-    created_at: datetime
+class Notification(TimeStampedBase):
+    __tablename__ = "notifications"
 
-    model_config = {"from_attributes": True}
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=True)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
+    task_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    project_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
