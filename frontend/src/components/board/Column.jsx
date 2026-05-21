@@ -19,6 +19,7 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
     description: '',
     priority: 'medium',
     assignee_id: '',
+    due_date: '',
   })
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(column.name)
@@ -95,6 +96,7 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
       position: tasks.length,
     }
     if (taskForm.assignee_id) payload.assignee_id = taskForm.assignee_id
+    if (taskForm.due_date) payload.due_date = new Date(taskForm.due_date).toISOString()
     createTaskMutation.mutate(payload)
   }
 
@@ -209,6 +211,12 @@ export default function Column({ column, tasks, projectId, onTaskClick, isTaskOv
                 </option>
               ))}
             </select>
+            <input
+              type="date"
+              value={taskForm.due_date}
+              onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
+              className="w-full bg-gray-700 text-white px-3 py-2 rounded-lg text-sm focus:outline-none"
+            />
             <div className="flex gap-2">
               <button
                 onClick={handleCreateTask}
