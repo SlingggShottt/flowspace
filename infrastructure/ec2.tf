@@ -1,5 +1,3 @@
-# infrastructure/ec2.tf
-
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -70,8 +68,12 @@ resource "aws_instance" "main" {
     aws_region          = var.aws_region
     razorpay_key_id     = var.razorpay_key_id
     razorpay_key_secret = var.razorpay_key_secret
-    resend_api_key = var.resend_api_key
+    resend_api_key      = var.resend_api_key
   })
+
+  lifecycle {
+    ignore_changes = [user_data, ami]
+  }
 
   tags = {
     Name        = "${var.project_name}-server"
