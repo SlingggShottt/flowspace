@@ -98,7 +98,7 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - **AWS Elastic IP** — static IP that never changes
 - **Nginx** — reverse proxy
 - **Terraform** — infrastructure as code (one command deploy and destroy)
-- **GitHub Actions** — automated offline page deployment on every push
+- **GitHub Actions** — CI/CD pipeline (tests, frontend deploy, backend deploy)
 
 ## Architecture
 
@@ -118,6 +118,26 @@ AWS Elastic IP -> AWS EC2 (FastAPI + Uvicorn + Nginx)
                       |---> Razorpay (Payments)
                       |---> Resend (Emails)
 ```
+
+## CI/CD Pipeline
+
+Every push to main triggers three parallel jobs:
+
+```
+Push to main
+      |
+      |---> Run Tests (pytest, spins up PostgreSQL service)
+      |         |
+      |         |--> Deploy Frontend (npm build + S3 sync)
+      |         |--> Deploy Backend (SSH into EC2, git pull, restart)
+      |
+      |---> Deploy Offline Page (always runs, ensures page is live)
+```
+
+- **Tests** always run in GitHub's own servers — no EC2 needed
+- **Frontend deploy** always runs — deploys to S3 regardless of EC2 state
+- **Backend deploy** runs when EC2 is up — skips gracefully when infra is destroyed
+- **Offline page** always runs — recruiters always see something at the URL
 
 ## Design Patterns
 
@@ -249,17 +269,12 @@ cd infrastructure
 terraform destroy
 ```
 
-After destroying, the offline page is automatically restored on the next git push via GitHub Actions. You can also trigger it manually from the Actions tab on GitHub.
-
-## CI/CD
-
-The project uses GitHub Actions for automated deployment. On every push to main, the workflow automatically ensures the offline page is live on S3 — even if the infrastructure has been destroyed. This means recruiters always see something when they visit the URL.
-
-To trigger manually: go to **Actions** → **Deploy Offline Page** → **Run workflow**.
+After destroying, the offline page is automatically restored on the next git push via GitHub Actions.
 
 ## Running Tests
 
 ```bash
+docker compose up -d
 docker exec -it flowspace-postgres psql -U flowspace -c "CREATE DATABASE flowspace_test;"
 export PYTHONPATH=$(pwd)
 pytest tests/ -v
@@ -285,10 +300,10 @@ flowspace/
 │       │   └── layout/     # Sidebar, AppLayout, NotificationBell, AuthGuard
 │       ├── pages/          # All page components
 │       └── store/          # Zustand global state
-├── .github/workflows/      # GitHub Actions CI/CD
+├── .github/workflows/      # GitHub Actions CI/CD (deploy.yml, offline.yml)
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
-├── tests/                  # Pytest test suite (38 tests)
+├── tests/                  # Pytest test suite
 ├── docker-compose.yml      # Local development databases
 └── .env.example            # Environment variable template
 ```
@@ -340,7 +355,7 @@ flowspace/
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, GitHub Actions CI/CD, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
 
 ## Links
 
