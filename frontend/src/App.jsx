@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AuthGuard from './components/layout/AuthGuard'
@@ -25,7 +26,49 @@ const queryClient = new QueryClient({
   },
 })
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 export default function App() {
+  const [apiStatus, setApiStatus] = useState('checking')
+
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(5000) })
+        if (res.ok) {
+          setApiStatus('online')
+        } else {
+          setApiStatus('offline')
+        }
+      } catch {
+        setApiStatus('offline')
+      }
+    }
+    checkApi()
+  }, [])
+
+  if (apiStatus === 'checking') {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#030712',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#6366f1',
+        fontFamily: 'sans-serif',
+        fontSize: '18px',
+      }}>
+        Loading Flowspace...
+      </div>
+    )
+  }
+
+  if (apiStatus === 'offline') {
+    window.location.href = '/offline.html'
+    return null
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
