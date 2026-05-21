@@ -7,7 +7,7 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - Frontend: http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com
 - API Docs: http://13.207.122.41:8000/docs
 
-> The infrastructure is spun down when not in use to save costs. If the app is offline, reach out and it can be live in under 10 minutes.
+> The infrastructure is spun down when not in use to save costs. If the app is offline, reach out and it can be live in under 10 minutes. The site automatically shows an offline page with project details and links when the server is down.
 
 ## Features
 
@@ -60,6 +60,12 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - Bell icon in top right corner on every page
 - Shows count of overdue tasks
 - Dropdown list of all overdue tasks with due dates
+
+### Offline Resilience
+- Health check on every page load
+- Automatically redirects to offline page when API is unreachable
+- Offline page shows full tech stack, GitHub and LinkedIn links
+- Offline page is always live on S3 regardless of infrastructure state
 
 ## Tech Stack
 
@@ -126,7 +132,7 @@ Every push to main triggers three parallel jobs:
 ```
 Push to main
       |
-      |---> Run Tests (pytest, spins up PostgreSQL service)
+      |---> Run Tests (pytest, 54 tests, spins up PostgreSQL service)
       |         |
       |         |--> Deploy Frontend (npm build + S3 sync)
       |         |--> Deploy Backend (SSH into EC2, git pull, restart)
@@ -269,7 +275,7 @@ cd infrastructure
 terraform destroy
 ```
 
-After destroying, the offline page is automatically restored on the next git push via GitHub Actions.
+After destroying, the offline page is automatically restored on the next git push via GitHub Actions. The frontend automatically detects the API is down and redirects to the offline page.
 
 ## Running Tests
 
@@ -279,6 +285,8 @@ docker exec -it flowspace-postgres psql -U flowspace -c "CREATE DATABASE flowspa
 export PYTHONPATH=$(pwd)
 pytest tests/ -v
 ```
+
+54 tests across 5 test files covering auth, users, projects, workspace, teams, and billing.
 
 ## Project Structure
 
@@ -303,7 +311,7 @@ flowspace/
 ├── .github/workflows/      # GitHub Actions CI/CD (deploy.yml, offline.yml)
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
-├── tests/                  # Pytest test suite
+├── tests/                  # Pytest test suite (54 tests)
 ├── docker-compose.yml      # Local development databases
 └── .env.example            # Environment variable template
 ```
@@ -355,7 +363,7 @@ flowspace/
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline with 54 automated tests, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
 
 ## Links
 
