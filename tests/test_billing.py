@@ -1,5 +1,6 @@
 import pytest
 from httpx import AsyncClient
+from unittest.mock import patch
 
 
 @pytest.mark.asyncio
@@ -40,25 +41,36 @@ async def test_create_order_for_free_plan_fails(client: AsyncClient, auth_header
 
 @pytest.mark.asyncio
 async def test_create_order_for_pro_plan(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/billing/order",
-        json={"plan": "pro"},
-        headers=auth_headers,
-    )
+    with patch("app.services.billing_service.razorpay.Client") as mock_client:
+        mock_client.return_value.order.create.return_value = {
+            "id": "order_test123",
+            "amount": 99900,
+            "currency": "INR",
+        }
+        response = await client.post(
+            "/billing/order",
+            json={"plan": "pro"},
+            headers=auth_headers,
+        )
     assert response.status_code == 200
     data = response.json()
     assert "order_id" in data
-    assert "amount" in data
     assert data["amount"] == 99900
 
 
 @pytest.mark.asyncio
 async def test_create_order_for_enterprise_plan(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/billing/order",
-        json={"plan": "enterprise"},
-        headers=auth_headers,
-    )
+    with patch("app.services.billing_service.razorpay.Client") as mock_client:
+        mock_client.return_value.order.create.return_value = {
+            "id": "order_test456",
+            "amount": 299900,
+            "currency": "INR",
+        }
+        response = await client.post(
+            "/billing/order",
+            json={"plan": "enterprise"},
+            headers=auth_headers,
+        )
     assert response.status_code == 200
     data = response.json()
     assert data["amount"] == 299900
