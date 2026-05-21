@@ -1,3 +1,5 @@
+// frontend/src/App.jsx
+
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -18,7 +20,6 @@ import ResetPasswordPage from './pages/ResetPasswordPage'
 import ChangePasswordRequiredPage from './pages/ChangePasswordRequiredPage'
 import NotificationsPage from './pages/NotificationsPage'
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -36,13 +37,16 @@ export default function App() {
   useEffect(() => {
     const checkApi = async () => {
       try {
-        const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(5000) })
-        if (res.ok) {
+        const res = await fetch(`${API_URL}/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(8000),
+        })
+        if (res.ok || res.type === 'opaque') {
           setApiStatus('online')
         } else {
           setApiStatus('offline')
         }
-      } catch {
+      } catch (err) {
         setApiStatus('offline')
       }
     }
@@ -89,8 +93,8 @@ export default function App() {
           <Route path="/settings" element={<AuthGuard><SettingsPage /></AuthGuard>} />
           <Route path="/billing" element={<AuthGuard><BillingPage /></AuthGuard>} />
           <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/notifications" element={<AuthGuard><NotificationsPage /></AuthGuard>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
