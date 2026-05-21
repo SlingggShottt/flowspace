@@ -114,5 +114,6 @@ jobs:
             pip install -r requirements.txt
             export PYTHONPATH=/app
             alembic upgrade head
+            sudo sed -i 's|"http://localhost:5173",|"http://localhost:5173",\n        "http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com",|' /app/app/main.py
             sudo systemctl restart flowspace
             echo "Backend deployed successfully"
