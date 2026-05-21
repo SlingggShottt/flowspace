@@ -370,6 +370,3 @@ flowspace/
 - GitHub: https://github.com/SlingggShottt/flowspace
 - LinkedIn: https://www.linkedin.com/in/divyansh-pankaj-mishra-4719b4204/
 
-## License
-
-MIT
