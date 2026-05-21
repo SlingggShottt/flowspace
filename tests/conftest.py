@@ -2,6 +2,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from unittest.mock import patch, AsyncMock
 from app.main import app
 from app.db.database import get_db, Base
 
@@ -10,7 +11,11 @@ TEST_DATABASE_URL = "postgresql+asyncpg://flowspace:flowspace@localhost:5432/flo
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        connect_args={"ssl": False},
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
@@ -38,11 +43,22 @@ async def client(db_engine):
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as ac:
-        yield ac
+    with patch("app.db.mongodb.connect_mongodb", new_callable=AsyncMock), \
+         patch("app.db.mongodb.close_mongodb"), \
+         patch("app.db.mongodb.get_mongodb", new_callable=AsyncMock) as mock_mongo:
+
+        mock_db = AsyncMock()
+        mock_db.comments.insert_one = AsyncMock(return_value=AsyncMock(inserted_id="test_id"))
+        mock_db.comments.find = AsyncMock(return_value=AsyncMock(__aiter__=AsyncMock(return_value=iter([]))))
+        mock_db.activities.insert_one = AsyncMock()
+        mock_db.activities.find = AsyncMock(return_value=AsyncMock(__aiter__=AsyncMock(return_value=iter([]))))
+        mock_mongo.return_value = mock_db
+
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test"
+        ) as ac:
+            yield ac
 
     app.dependency_overrides.clear()
 

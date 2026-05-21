@@ -100,3 +100,21 @@ async def test_reset_password_invalid_token(client: AsyncClient):
         }
     )
     assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_profile_shows_role(client: AsyncClient, auth_headers):
+    response = await client.get("/users/me", headers=auth_headers)
+    assert response.status_code == 200
+    assert response.json()["role"] == "admin"
+
+
+@pytest.mark.asyncio
+async def test_invited_user_must_change_password(client: AsyncClient, auth_headers):
+    invite_response = await client.post(
+        "/workspace/invite",
+        json={"email": "mustchange@example.com", "role": "member"},
+        headers=auth_headers,
+    )
+    assert invite_response.status_code == 200
+    assert invite_response.json()["user"]["must_change_password"] == True

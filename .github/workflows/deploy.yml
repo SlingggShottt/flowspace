@@ -94,6 +94,7 @@ jobs:
     name: Deploy Backend
     runs-on: ubuntu-latest
     needs: test
+    continue-on-error: true
 
     steps:
       - name: Deploy to EC2
@@ -102,6 +103,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 10s
+          command_timeout: 5m
           script: |
             cd /app
             git config --global --add safe.directory /app

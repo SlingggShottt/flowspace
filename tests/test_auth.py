@@ -18,6 +18,34 @@ async def test_register_success(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_register_with_fake_domain_shows_warning(client: AsyncClient):
+    response = await client.post("/auth/register", json={
+        "company_name": "Fake Domain Co",
+        "email": "test@thisisnotarealdomain99999xyz.com",
+        "password": "password123",
+        "name": "Fake User",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert "email_warning" in data
+
+
+@pytest.mark.asyncio
+async def test_register_with_real_domain_no_warning(client: AsyncClient):
+    response = await client.post("/auth/register", json={
+        "company_name": "Real Domain Co",
+        "email": "test@gmail.com",
+        "password": "password123",
+        "name": "Real User",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert "email_warning" not in data
+
+
+@pytest.mark.asyncio
 async def test_register_duplicate_email(client: AsyncClient, registered_user):
     response = await client.post("/auth/register", json={
         "company_name": "Another Company",
@@ -28,17 +56,6 @@ async def test_register_duplicate_email(client: AsyncClient, registered_user):
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
-
-
-@pytest.mark.asyncio
-async def test_register_sends_welcome_email(client: AsyncClient):
-    response = await client.post("/auth/register", json={
-        "company_name": "Email Test Co",
-        "email": "emailtest@gmail.com",
-        "password": "password123",
-        "name": "Email Tester",
-    })
-    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
@@ -89,3 +106,15 @@ async def test_protected_route_without_token(client: AsyncClient):
 async def test_protected_route_with_token(client: AsyncClient, auth_headers):
     response = await client.get("/projects", headers=auth_headers)
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_admin_role_on_register(client: AsyncClient):
+    response = await client.post("/auth/register", json={
+        "company_name": "Role Test Co",
+        "email": "roletest@example.com",
+        "password": "password123",
+        "name": "Role Tester",
+    })
+    assert response.status_code == 200
+    assert response.json()["user"]["role"] == "admin"
