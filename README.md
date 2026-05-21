@@ -98,6 +98,7 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - **AWS Elastic IP** — static IP that never changes
 - **Nginx** — reverse proxy
 - **Terraform** — infrastructure as code (one command deploy and destroy)
+- **GitHub Actions** — automated offline page deployment on every push
 
 ## Architecture
 
@@ -241,20 +242,20 @@ export PYTHONPATH=/app && alembic upgrade head
 sudo systemctl restart flowspace
 ```
 
-### Destroy to save credits and Restore offline page after destroy
-
-When infrastructure is destroyed the S3 bucket is deleted. Run this to instantly bring back the offline page:
-
-```bash
-bash scripts/setup-offline.sh
-```
-
-This creates the S3 bucket, sets public access, and uploads the offline page in one command.
+### Destroy to save credits
 
 ```bash
 cd infrastructure
 terraform destroy
 ```
+
+After destroying, the offline page is automatically restored on the next git push via GitHub Actions. You can also trigger it manually from the Actions tab on GitHub.
+
+## CI/CD
+
+The project uses GitHub Actions for automated deployment. On every push to main, the workflow automatically ensures the offline page is live on S3 — even if the infrastructure has been destroyed. This means recruiters always see something when they visit the URL.
+
+To trigger manually: go to **Actions** → **Deploy Offline Page** → **Run workflow**.
 
 ## Running Tests
 
@@ -284,6 +285,7 @@ flowspace/
 │       │   └── layout/     # Sidebar, AppLayout, NotificationBell, AuthGuard
 │       ├── pages/          # All page components
 │       └── store/          # Zustand global state
+├── .github/workflows/      # GitHub Actions CI/CD
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
 ├── tests/                  # Pytest test suite (38 tests)
@@ -338,9 +340,13 @@ flowspace/
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, GitHub Actions CI/CD, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
 
 ## Links
 
 - GitHub: https://github.com/SlingggShottt/flowspace
 - LinkedIn: https://www.linkedin.com/in/divyansh-pankaj-mishra-4719b4204/
+
+## License
+
+MIT
