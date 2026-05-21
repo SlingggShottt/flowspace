@@ -241,7 +241,15 @@ export PYTHONPATH=/app && alembic upgrade head
 sudo systemctl restart flowspace
 ```
 
-### Destroy to save credits
+### Destroy to save credits and Restore offline page after destroy
+
+When infrastructure is destroyed the S3 bucket is deleted. Run this to instantly bring back the offline page:
+
+```bash
+bash scripts/setup-offline.sh
+```
+
+This creates the S3 bucket, sets public access, and uploads the offline page in one command.
 
 ```bash
 cd infrastructure
