@@ -5,7 +5,7 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 ## Live Demo
 
 - Frontend: http://flowspace-frontend-prod.s3-website.ap-south-1.amazonaws.com
-- API Docs: http://13.207.122.41:8000/docs
+- API Docs: http://13.207.70.246:8000/docs
 
 > The infrastructure is spun down when not in use to save costs. If the app is offline, reach out and it can be live in under 10 minutes. The site automatically shows an offline page with project details and links when the server is down.
 
@@ -36,7 +36,7 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 - Invite email with temporary password
 - Task assigned notification email
 - Comment notification email to task assignee
-- Daily overdue digest email at 8am
+- Daily overdue digest email at 6pm IST
 
 ### Password Management
 - Forgot password flow with email reset link
@@ -58,8 +58,10 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 
 ### Notifications
 - Bell icon in top right corner on every page
-- Shows count of overdue tasks
-- Dropdown list of all overdue tasks with due dates
+- Real-time unread count badge
+- Mark individual notification as read
+- Mark all notifications as read
+- Dedicated notifications page
 
 ### Offline Resilience
 - Health check on every page load
@@ -132,7 +134,7 @@ Every push to main triggers three parallel jobs:
 ```
 Push to main
       |
-      |---> Run Tests (pytest, 54 tests, spins up PostgreSQL service)
+      |---> Run Tests (pytest, 86 tests, spins up PostgreSQL service)
       |         |
       |         |--> Deploy Frontend (npm build + S3 sync)
       |         |--> Deploy Backend (SSH into EC2, git pull, restart)
@@ -286,7 +288,7 @@ export PYTHONPATH=$(pwd)
 pytest tests/ -v
 ```
 
-54 tests across 5 test files covering auth, users, projects, workspace, teams, and billing.
+86 tests across 10 test files covering auth, users, projects, workspace, teams, billing, notifications, comments, columns, and tasks.
 
 ## Project Structure
 
@@ -311,7 +313,7 @@ flowspace/
 ├── .github/workflows/      # GitHub Actions CI/CD (deploy.yml, offline.yml)
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
-├── tests/                  # Pytest test suite (54 tests)
+├── tests/                  # Pytest test suite (86 tests)
 ├── docker-compose.yml      # Local development databases
 └── .env.example            # Environment variable template
 ```
@@ -330,6 +332,8 @@ flowspace/
 | DELETE | /projects/:id | Archive project |
 | GET | /projects/:id/columns | List columns |
 | POST | /projects/:id/columns | Create column |
+| PATCH | /projects/:id/columns/:id | Rename column |
+| DELETE | /projects/:id/columns/:id | Delete column |
 | POST | /projects/:id/columns/:id/tasks | Create task |
 | PATCH | /tasks/:id | Update task |
 | PATCH | /tasks/:id/move | Move task to column |
@@ -337,9 +341,12 @@ flowspace/
 | GET | /tasks/search | Search tasks |
 | GET | /tasks/:id/comments | Get comments |
 | POST | /tasks/:id/comments | Add comment |
+| DELETE | /tasks/:id/comments/:id | Delete comment |
 | GET | /tasks/:id/activity | Get activity feed |
 | GET | /workspace/members | List members |
 | POST | /workspace/invite | Invite member |
+| GET | /workspace/settings | Get workspace settings |
+| PATCH | /workspace/settings | Update workspace settings |
 | GET | /teams | List teams |
 | POST | /teams | Create team |
 | POST | /teams/:id/members | Add member to team |
@@ -348,6 +355,10 @@ flowspace/
 | POST | /users/me/change-password | Change password |
 | POST | /users/forgot-password | Request password reset email |
 | POST | /users/reset-password | Reset password with token |
+| GET | /notifications | Get notifications |
+| GET | /notifications/unread-count | Get unread count |
+| PATCH | /notifications/:id/read | Mark notification as read |
+| PATCH | /notifications/mark-all-read | Mark all as read |
 | GET | /billing | Get billing info and plan limits |
 | POST | /billing/order | Create Razorpay payment order |
 | POST | /billing/verify | Verify payment and upgrade plan |
@@ -361,12 +372,32 @@ flowspace/
 | Pro | 10 | Unlimited | ₹999/month |
 | Enterprise | Unlimited | Unlimited | ₹2,999/month |
 
+## Future Improvements
+
+### Technical
+- **HTTPS and custom domain** — currently served over HTTP; purchasing a domain and adding SSL via Let's Encrypt would unblock mobile browsers and make the app production-ready
+- **WebSocket real-time updates** — when one user moves a card, other users on the same board see it instantly without refreshing
+- **Redis-backed password reset tokens** — currently stored in memory and lost on server restart; Redis would make them persistent and expirable
+- **Docker multi-stage builds** — cleaner containerisation with a smaller final image for faster deployments
+- **Prometheus and Grafana observability** — metrics dashboards, API latency tracking, error rate alerts, and business metrics like signups and plan upgrades
+- **Rate limiting on API endpoints** — prevent abuse and brute force attacks on auth routes
+- **File attachments on tasks** — upload images and documents directly to tasks, stored in S3
+
+### Product Features
+- **Task due date reminders** — email and in-app notification before a task is due, not just after it is overdue
+- **Task labels and tags** — color-coded labels for filtering and grouping tasks across the board
+- **Comment @mentions** — tag teammates in comments to send them an instant notification
+- **Audit log viewer** — admin-only page showing a searchable history of all workspace actions
+- **Export to CSV and PDF** — download project tasks and reports for offline use or sharing
+- **Dark mode** — theme toggle for the entire UI
+- **Mobile responsive design** — currently desktop only; a responsive layout would make it usable on phones and tablets
+- **Smarter task search** — full-text search with filters for assignee, priority, due date, and label
+
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline with 54 automated tests, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, forgot password flow, and a fully role-gated UI for admins and members.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline with 86 automated tests, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, in-app notification system, forgot password flow, and a fully role-gated UI for admins and members.
 
 ## Links
 
 - GitHub: https://github.com/SlingggShottt/flowspace
 - LinkedIn: https://www.linkedin.com/in/divyansh-pankaj-mishra-4719b4204/
-
