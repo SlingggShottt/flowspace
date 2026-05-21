@@ -2,7 +2,7 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 from app.main import app
 from app.db.database import get_db, Base
 
@@ -24,6 +24,22 @@ async def db_engine():
     await engine.dispose()
 
 
+def make_mock_cursor(docs=None):
+    """Returns a mock that supports .find().sort().limit() chaining and async iteration."""
+    if docs is None:
+        docs = []
+
+    async def async_iter(self):
+        for doc in docs:
+            yield doc
+
+    cursor = MagicMock()
+    cursor.__aiter__ = async_iter
+    cursor.sort = MagicMock(return_value=cursor)
+    cursor.limit = MagicMock(return_value=cursor)
+    return cursor
+
+
 @pytest_asyncio.fixture(scope="function")
 async def client(db_engine):
     session_factory = async_sessionmaker(
@@ -43,16 +59,22 @@ async def client(db_engine):
 
     app.dependency_overrides[get_db] = override_get_db
 
+    mock_db = MagicMock()
+    mock_db.comments.insert_one = AsyncMock(return_value=MagicMock(inserted_id="6507f1f77bcf86cd799439011"))
+    mock_db.comments.find = MagicMock(return_value=make_mock_cursor())
+    mock_db.comments.delete_one = AsyncMock(return_value=MagicMock(deleted_count=1))
+    mock_db.activities.insert_one = AsyncMock()
+    mock_db.activities.find = MagicMock(return_value=make_mock_cursor())
+
     with patch("app.db.mongodb.connect_mongodb", new_callable=AsyncMock), \
          patch("app.db.mongodb.close_mongodb"), \
-         patch("app.db.mongodb.get_mongodb", new_callable=AsyncMock) as mock_mongo:
+         patch("app.db.mongodb.get_mongodb", new_callable=AsyncMock) as mock_mongo, \
+         patch("app.services.comment_service.get_mongodb", new_callable=AsyncMock) as mock_comment_mongo, \
+         patch("app.services.activity_service.get_mongodb", new_callable=AsyncMock) as mock_activity_mongo:
 
-        mock_db = AsyncMock()
-        mock_db.comments.insert_one = AsyncMock(return_value=AsyncMock(inserted_id="test_id"))
-        mock_db.comments.find = AsyncMock(return_value=AsyncMock(__aiter__=AsyncMock(return_value=iter([]))))
-        mock_db.activities.insert_one = AsyncMock()
-        mock_db.activities.find = AsyncMock(return_value=AsyncMock(__aiter__=AsyncMock(return_value=iter([]))))
         mock_mongo.return_value = mock_db
+        mock_comment_mongo.return_value = mock_db
+        mock_activity_mongo.return_value = mock_db
 
         async with AsyncClient(
             transport=ASGITransport(app=app),
