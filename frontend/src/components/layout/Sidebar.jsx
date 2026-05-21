@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
+import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard, Bell } from 'lucide-react'
 import { getProjects } from '../../api/projects'
 import { getBillingInfo } from '../../api/billing'
 import { logout } from '../../api/auth'
@@ -138,6 +138,16 @@ export default function Sidebar() {
             <span className="truncate">{user?.name || 'My Profile'}</span>
           </Link>
         )}
+        <Link
+          to="/notifications"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${
+            location.pathname === '/notifications' ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800'
+          }`}
+          title={collapsed ? 'Notifications' : ''}
+        >
+          <Bell size={18} />
+          {!collapsed && 'Notifications'}
+        </Link>
         <Link
           to="/members"
           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base transition-colors ${

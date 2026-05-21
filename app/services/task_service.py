@@ -1,5 +1,3 @@
-# app/services/task_service.py
-
 import uuid
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,13 +30,13 @@ class TaskService:
         except Exception:
             pass
 
-    async def _send_assignment_email(self, task, assigned_by_name: str, project_name: str):
+    async def _notify_assignee(self, task, assigned_by_name: str, project_name: str, project_id: uuid.UUID):
         try:
             if not task.assignee_id:
                 return
             from app.models.user import User
-            from app.models.project import Project
             from app.services.email_service import EmailService
+            from app.services.notification_service import NotificationService
             assignee_result = await self.db.execute(
                 select(User).where(User.id == task.assignee_id)
             )
@@ -53,8 +51,18 @@ class TaskService:
                 assigned_by=assigned_by_name,
                 project_name=project_name,
             )
+            notif_service = NotificationService(self.db)
+            await notif_service.create_notification(
+                user_id=task.assignee_id,
+                tenant_id=task.tenant_id,
+                type="task_assigned",
+                title=f"Task assigned to you",
+                body=f"{assigned_by_name} assigned you '{task.title}' in {project_name}",
+                task_id=task.id,
+                project_id=project_id,
+            )
         except Exception as e:
-            print(f"Task assignment email error: {e}")
+            print(f"Notify assignee error: {e}")
 
     async def create_task(
         self, column_id: uuid.UUID, tenant_id: uuid.UUID, project_id: uuid.UUID,
@@ -81,7 +89,7 @@ class TaskService:
                 select(Project).where(Project.id == project_id)
             )
             project = project_result.scalar_one_or_none()
-            await self._send_assignment_email(task, user_name or "Someone", project.name if project else "Flowspace")
+            await self._notify_assignee(task, user_name or "Someone", project.name if project else "Flowspace", project_id)
         return TaskResponse.model_validate(task)
 
     async def get_task(self, task_id: uuid.UUID, tenant_id: uuid.UUID) -> TaskResponse:
@@ -110,7 +118,7 @@ class TaskService:
                 select(Project).where(Project.id == updated.project_id)
             )
             project = project_result.scalar_one_or_none()
-            await self._send_assignment_email(updated, user_name or "Someone", project.name if project else "Flowspace")
+            await self._notify_assignee(updated, user_name or "Someone", project.name if project else "Flowspace", updated.project_id)
         return TaskResponse.model_validate(updated)
 
     async def move_task(
