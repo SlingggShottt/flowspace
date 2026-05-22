@@ -41,3 +41,7 @@ output "frontend_bucket" {
   description = "S3 frontend bucket name"
   value       = aws_s3_bucket.frontend.id
 }
+
+output "elastic_ip" {
+  value = aws_eip.main.public_ip
+}
