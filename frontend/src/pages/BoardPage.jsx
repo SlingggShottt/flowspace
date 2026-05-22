@@ -104,7 +104,7 @@ export default function BoardPage() {
 
   return (
     <AppLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 pr-12">
         <div>
           <h1 className="text-2xl font-bold text-white">
             {project?.name || 'Loading...'}
