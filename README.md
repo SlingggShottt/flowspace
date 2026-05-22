@@ -11,6 +11,15 @@ A production-ready multi-tenant SaaS project management platform built with Fast
 
 ## Features
 
+### Dashboard
+- Visual overview of all projects as cards
+- Summary stats at the top — admins see total members, projects, tasks and overdue count; members see assigned tasks, due soon, and overdue
+- Recent activity strip showing the last 5 actions across all projects
+- Project cards with color strip, task counts, and red overdue badge
+- Sort projects by name, most overdue, or most tasks
+- Click any card to go directly to that project's kanban board
+- Empty state for new workspaces with role-appropriate messaging
+
 ### Project Management
 - Multi-tenant architecture — each company gets its own isolated workspace
 - Kanban board with drag and drop task management
@@ -134,7 +143,7 @@ Every push to main triggers three parallel jobs:
 ```
 Push to main
       |
-      |---> Run Tests (pytest, 86 tests, spins up PostgreSQL service)
+      |---> Run Tests (pytest, 97 tests, spins up PostgreSQL service)
       |         |
       |         |--> Deploy Frontend (npm build + S3 sync)
       |         |--> Deploy Backend (SSH into EC2, git pull, restart)
@@ -288,7 +297,7 @@ export PYTHONPATH=$(pwd)
 pytest tests/ -v
 ```
 
-86 tests across 10 test files covering auth, users, projects, workspace, teams, billing, notifications, comments, columns, and tasks.
+97 tests across 11 test files covering auth, users, projects, workspace, teams, billing, notifications, comments, columns, tasks, and dashboard.
 
 ## Project Structure
 
@@ -313,7 +322,7 @@ flowspace/
 ├── .github/workflows/      # GitHub Actions CI/CD (deploy.yml, offline.yml)
 ├── migrations/             # Alembic migration history
 ├── infrastructure/         # Terraform AWS infrastructure
-├── tests/                  # Pytest test suite (86 tests)
+├── tests/                  # Pytest test suite (97 tests)
 ├── docker-compose.yml      # Local development databases
 └── .env.example            # Environment variable template
 ```
@@ -326,6 +335,7 @@ flowspace/
 | POST | /auth/login | Login and get JWT |
 | POST | /auth/refresh | Refresh access token |
 | POST | /auth/logout | Logout |
+| GET | /dashboard | Get dashboard summary and project cards |
 | GET | /projects | List projects |
 | POST | /projects | Create project |
 | PATCH | /projects/:id | Update project |
@@ -395,7 +405,7 @@ flowspace/
 
 ## Resume Description
 
-> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline with 86 automated tests, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, in-app notification system, forgot password flow, and a fully role-gated UI for admins and members.
+> Built a production-ready multi-tenant SaaS project management platform (like Jira) using FastAPI, React, PostgreSQL, MongoDB, and Redis — deployed on AWS using Terraform with one-command deploy/destroy, full GitHub Actions CI/CD pipeline with 97 automated tests, Razorpay billing with 3 subscription tiers, role-based access control, team management, drag-and-drop kanban board, task comments and activity feeds, transactional email notifications via Resend, in-app notification system, dashboard with project analytics, forgot password flow, and a fully role-gated UI for admins and members.
 
 ## Links
 

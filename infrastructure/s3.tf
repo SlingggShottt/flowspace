@@ -1,20 +1,16 @@
 resource "aws_s3_bucket" "frontend" {
-  bucket        = "${var.project_name}-frontend-prod"
-  force_destroy = true
+  bucket = "flowspace-frontend-prod"
 
-  tags = {
-    Name        = "${var.project_name}-frontend"
-    Environment = var.environment
+  lifecycle {
+    ignore_changes = all
   }
 }
 
 resource "aws_s3_bucket" "uploads" {
-  bucket        = "${var.project_name}-uploads-prod"
-  force_destroy = true
+  bucket = "flowspace-uploads-prod"
 
-  tags = {
-    Name        = "${var.project_name}-uploads"
-    Environment = var.environment
+  lifecycle {
+    ignore_changes = all
   }
 }
 

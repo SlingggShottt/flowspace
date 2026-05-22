@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard, Bell } from 'lucide-react'
+import { Users, Settings, LogOut, Plus, LayoutGrid, Pencil, ChevronLeft, ChevronRight, CreditCard, Bell, LayoutDashboard } from 'lucide-react'
 import { getProjects } from '../../api/projects'
 import { getBillingInfo } from '../../api/billing'
 import { logout } from '../../api/auth'
@@ -69,9 +69,23 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
+
+        {/* Dashboard link */}
+        <Link
+          to="/dashboard"
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base mb-3 transition-colors ${
+            location.pathname === '/dashboard' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-800'
+          }`}
+          title={collapsed ? 'Dashboard' : ''}
+        >
+          <LayoutDashboard size={18} />
+          {!collapsed && 'Dashboard'}
+        </Link>
+
         {!collapsed && (
           <p className="text-sm text-gray-500 uppercase tracking-wider mb-2 px-2">Projects</p>
         )}
+
         {projects.map((project) => (
           <div
             key={project.id}

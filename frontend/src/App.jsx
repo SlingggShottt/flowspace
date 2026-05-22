@@ -19,6 +19,8 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import ChangePasswordRequiredPage from './pages/ChangePasswordRequiredPage'
 import NotificationsPage from './pages/NotificationsPage'
+import DashboardPage from './pages/DashboardPage'
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +97,7 @@ export default function App() {
           <Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />
           <Route path="/notifications" element={<AuthGuard><NotificationsPage /></AuthGuard>} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/dashboard" element={<AuthGuard><DashboardPage /></AuthGuard>} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

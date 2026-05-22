@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.core.config import settings
-from app.routers import health, auth, projects, columns, tasks, workspace, teams, billing, comments, users, notifications
+from app.routers import health, auth, projects, columns, tasks, workspace, teams, billing, comments, users, notifications, dashboard
 from app.db.mongodb import connect_mongodb, close_mongodb
 from app.services.digest_service import send_overdue_digests
 
@@ -52,6 +52,7 @@ app.include_router(teams.router)
 app.include_router(billing.router)
 app.include_router(users.router)
 app.include_router(notifications.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/")
